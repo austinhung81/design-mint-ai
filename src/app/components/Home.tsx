@@ -1,21 +1,14 @@
 import { getFigmaStorageValue } from '../../../lib/utils'
 import React, { useEffect, useState } from 'react'
+import ChatPage from './ChatPage'
 
 const Home = ({ setActiveTab }) => {
 	const [apiKey, setApiKey] = useState('')
-	const [openAiModel, setOpenAiModel] = useState('')
 
 	useEffect(() => {
 		async function fetchStorageValues() {
 			const apiKey = await getFigmaStorageValue('openai_api_key')
-			const key = (apiKey ?? '') as string
-			console.log(key)
-			setApiKey(key)
-
-			const openAiModel = await getFigmaStorageValue('openai_model')
-			const modal = (openAiModel ?? '') as string
-			console.log(modal)
-			setOpenAiModel(modal)
+			setApiKey((apiKey ?? '') as string)
 		}
 
 		fetchStorageValues()
@@ -39,18 +32,7 @@ const Home = ({ setActiveTab }) => {
 		)
 	}
 
-	return (
-		<>
-			{!apiKey ? (
-				<Welcome />
-			) : (
-				<>
-					<div>Start your Chat</div>
-					<div>{openAiModel}</div>
-				</>
-			)}
-		</>
-	)
+	return <>{!apiKey ? <Welcome /> : <ChatPage />}</>
 }
 
 export default Home

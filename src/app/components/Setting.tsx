@@ -36,12 +36,14 @@ const Setting = () => {
 		async function fetchStorageValues() {
 			const apiKey = await getFigmaStorageValue('openai_api_key')
 			const key = (apiKey ?? '') as string
-			console.log(key)
 			setApiKey(key)
 
 			const openAiModel = await getFigmaStorageValue('openai_model')
-			const modal = (openAiModel ?? 'gbt-3.5-turbo') as string
-			console.log(modal)
+			const modal = (openAiModel ?? 'gpt-3.5-turbo') as string
+			window.parent.postMessage(
+				{ pluginMessage: { type: 'set-value', name: 'openai_model', value: modal } },
+				'*'
+			)
 			setOpenAiModel(modal)
 		}
 
@@ -81,13 +83,12 @@ const Setting = () => {
 					</SelectTrigger>
 					<SelectContent>
 						<SelectGroup>
-							<SelectItem value="gbt-3.5-turbo">gbt-3.5-turbo</SelectItem>
-							<SelectItem value="gbt-4-turbo">gbt-4-turbo</SelectItem>
-							<SelectItem value="gtp-4">gtp-4</SelectItem>
+							<SelectItem value="gpt-3.5-turbo">gpt-3.5-turbo</SelectItem>
+							<SelectItem value="gpt-4-turbo">gpt-4-turbo</SelectItem>
+							<SelectItem value="gpt-4">gpt-4</SelectItem>
 						</SelectGroup>
 					</SelectContent>
 				</Select>
-				<div>{openAiModel}</div>
 			</div>
 		</div>
 	)
