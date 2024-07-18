@@ -29,6 +29,7 @@ figma.ui.onmessage = async msg => {
 	if (msg.type === 'set-value') {
 		await figma.clientStorage.setAsync(msg.name, msg.value)
 	} else if (msg.type === 'get-value') {
+		console.log(msg)
 		const value = await figma.clientStorage.getAsync(msg.name)
 		figma.ui.postMessage({ type: 'return-value', value: value })
 	}
@@ -37,4 +38,8 @@ figma.ui.onmessage = async msg => {
 // Clear clientStorage when plugin is closed
 figma.on('close', async () => {
 	await figma.clientStorage.setAsync('openai_api_key', null)
+})
+
+figma.on('close', async () => {
+	await figma.clientStorage.setAsync('openai_model', null)
 })

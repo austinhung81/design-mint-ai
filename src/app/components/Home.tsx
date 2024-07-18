@@ -1,29 +1,24 @@
+import { getFigmaStorageValue } from '../../../lib/utils'
 import React, { useEffect, useState } from 'react'
 
 const Home = ({ setActiveTab }) => {
 	const [apiKey, setApiKey] = useState('')
-
-	const getFigmaStorageValue = name => {
-		window.parent.postMessage({ pluginMessage: { type: 'get-value', name: name } }, '*')
-
-		const promise = new Promise(function (resolve) {
-			window.addEventListener(
-				'message',
-				function (event) {
-					resolve(event.data.pluginMessage.value)
-				},
-				{ once: true }
-			)
-		})
-
-		return promise
-	}
+	const [openAiModel, setOpenAiModel] = useState('')
 
 	useEffect(() => {
-		getFigmaStorageValue('openai_api_key').then(value => {
-			const key = (value ?? '') as string
+		async function fetchStorageValues() {
+			const apiKey = await getFigmaStorageValue('openai_api_key')
+			const key = (apiKey ?? '') as string
+			console.log(key)
 			setApiKey(key)
-		})
+
+			const openAiModel = await getFigmaStorageValue('openai_model')
+			const modal = (openAiModel ?? '') as string
+			console.log(modal)
+			setOpenAiModel(modal)
+		}
+
+		fetchStorageValues()
 	}, [])
 
 	const Welcome = () => {
@@ -51,6 +46,7 @@ const Home = ({ setActiveTab }) => {
 			) : (
 				<>
 					<div>Start your Chat</div>
+					<div>{openAiModel}</div>
 				</>
 			)}
 		</>

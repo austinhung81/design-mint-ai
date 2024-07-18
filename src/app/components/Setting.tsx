@@ -9,9 +9,11 @@ import {
 } from '../../../components/ui/select'
 
 import { Input } from '../../../components/ui/input'
+import { getFigmaStorageValue } from '../../../lib/utils'
 
 const Setting = () => {
 	const [apiKey, setApiKey] = useState('')
+	const [openAiModel, setOpenAiModel] = useState('')
 
 	const handleApiKeyChange = e => {
 		const key = e.target.value
@@ -22,27 +24,28 @@ const Setting = () => {
 		setApiKey(key)
 	}
 
-	const getFigmaStorageValue = name => {
-		window.parent.postMessage({ pluginMessage: { type: 'get-value', name: name } }, '*')
-
-		const promise = new Promise(function (resolve) {
-			window.addEventListener(
-				'message',
-				function (event) {
-					resolve(event.data.pluginMessage.value)
-				},
-				{ once: true }
-			)
-		})
-
-		return promise
+	const handleOpenAiModelChange = key => {
+		window.parent.postMessage(
+			{ pluginMessage: { type: 'set-value', name: 'openai_model', value: key } },
+			'*'
+		)
+		setOpenAiModel(key)
 	}
 
 	useEffect(() => {
-		getFigmaStorageValue('openai_api_key').then(value => {
-			const key = (value ?? '') as string
+		async function fetchStorageValues() {
+			const apiKey = await getFigmaStorageValue('openai_api_key')
+			const key = (apiKey ?? '') as string
+			console.log(key)
 			setApiKey(key)
-		})
+
+			const openAiModel = await getFigmaStorageValue('openai_model')
+			const modal = (openAiModel ?? 'gbt-3.5-turbo') as string
+			console.log(modal)
+			setOpenAiModel(modal)
+		}
+
+		fetchStorageValues()
 	}, [])
 
 	return (
@@ -72,7 +75,7 @@ const Setting = () => {
 				<label htmlFor="model" className="block text-sm text-rice500 text-left">
 					Model
 				</label>
-				<Select defaultValue="gbt-3.5-turbo">
+				<Select value={openAiModel} onValueChange={value => handleOpenAiModelChange(value)}>
 					<SelectTrigger className="w-full">
 						<SelectValue placeholder="Select a model" />
 					</SelectTrigger>
@@ -84,6 +87,7 @@ const Setting = () => {
 						</SelectGroup>
 					</SelectContent>
 				</Select>
+				<div>{openAiModel}</div>
 			</div>
 		</div>
 	)
