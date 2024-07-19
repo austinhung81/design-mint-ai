@@ -34,12 +34,3 @@ figma.ui.onmessage = async msg => {
 		figma.ui.postMessage({ type: 'return-value', value: value })
 	}
 }
-
-// Clear clientStorage when plugin is closed
-figma.on('close', async () => {
-	await figma.clientStorage.setAsync('openai_api_key', null)
-})
-
-figma.on('close', async () => {
-	await figma.clientStorage.setAsync('openai_model', null)
-})

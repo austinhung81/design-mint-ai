@@ -15,7 +15,7 @@ import { StopCircleIcon } from '@heroicons/react/24/outline'
 import Tooltip from '../../../components/ui/tooltip'
 import FileDataPreview from './FileDataPreview'
 import { FileDataRef } from '../models/FileData'
-import { preprocessImage } from '../../../lib/imageUtils'
+import { preprocessImage } from '../../../lib/ImageUtils'
 
 interface MessageBoxProps {
 	callApp: Function
@@ -281,10 +281,7 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 		}
 
 		return (
-			<div
-				style={{ position: 'sticky' }}
-				className="absolute bottom-0 left-0 w-full border-t md:border-t-0 dark:border-white/20 md:border-transparent md:dark:border-transparent bg-white dark:bg-gray-900 md:!bg-transparent pt-2"
-			>
+			<div className="fix bottom-0 left-0 w-full bg-rice200 p-4">
 				<form
 					onSubmit={handleSubmit}
 					className="stretch mx-2 flex flex-row gap-3 last:mb-2 md:mx-4 md:last:mb-6 lg:mx-auto md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl 3xl:max-w-6xl 4xl:max-w7xl"
@@ -292,9 +289,7 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 					<div
 						id="message-box-border"
 						style={{ borderRadius: '1rem' }}
-						className="relative flex flex-col h-full flex-1 w-full py-2 flex-grow md:py-3 bg-white dark:bg-gray-850
-               dark:text-white dark:bg-gray-850 border border-black/10 dark:border-gray-900/50
-               focus-within:border-black/30 dark:focus-within:border-gray-500/50"
+						className="relative flex min-h-[135px] w-full p-4 bg-white"
 					>
 						{/* FileDataPreview Full Width at the Top */}
 						{fileDataRef.length > 0 && (
@@ -307,14 +302,14 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 							</div>
 						)}
 						{/* Container for Textarea and Buttons */}
-						<div className="flex items-center w-full relative space-x-2">
+						<div className="flex flex-col w-full relative">
 							{/* Grammarly extension container */}
-							<div
+							{/*<div
 								className="flex items-center "
 								style={{ flexShrink: 0, minWidth: 'fit-content' }}
 							>
-								{/* Grammarly extension buttons will render here without overlapping */}
-							</div>
+								 Grammarly extension buttons will render here without overlapping 
+							</div>*/}
 
 							{/* Textarea */}
 							<textarea
@@ -322,9 +317,9 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 								name="message"
 								tabIndex={0}
 								ref={textAreaRef}
-								rows={1}
-								className="flex-auto m-0 resize-none border-0 bg-transparent px-2 py-2 focus:ring-0 focus-visible:ring-0 outline-none shadow-none dark:bg-transparent"
-								placeholder="send-a-message"
+								rows={2}
+								className="flex-1 m-0 resize-none border-0 bg-transparent text-sm focus:ring-0 focus-visible:ring-0 outline-none shadow-none placeholder:text-sm"
+								placeholder="Find anything......"
 								onKeyDown={checkForSpecialKey}
 								onChange={handleTextChange}
 								onPaste={handlePaste}
@@ -332,7 +327,7 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 							></textarea>
 
 							{/* Cancel/Submit Button */}
-							<div className="flex items-center justify-end">
+							<div className="flex justify-end">
 								{loading ? (
 									<Tooltip title="cancel-output" side="top" sideOffset={0}>
 										<button onClick={e => handleCancel(e)} className="p-1">

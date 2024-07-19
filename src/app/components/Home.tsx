@@ -8,15 +8,21 @@ const Home = ({ setActiveTab }) => {
 	useEffect(() => {
 		async function fetchStorageValues() {
 			const apiKey = await getFigmaStorageValue('openai_api_key')
-			setApiKey((apiKey ?? '') as string)
+			const openaiModel = await getFigmaStorageValue('openai_model')
+			if (!apiKey || !openaiModel) {
+				setApiKey(null)
+				return
+			}
+			const userAPIKey = (apiKey ?? '') as string
+			setApiKey(userAPIKey)
 		}
 
 		fetchStorageValues()
-	}, [])
+	}, []) // Depend on activeTab to re-run when it changes
 
 	const Welcome = () => {
 		return (
-			<div className="flex flex-col gap-60">
+			<div className="flex flex-col gap-60 p-4">
 				<h1 className="text-2xl text-left text-mint400">Welcome 👋</h1>
 				<span className="text-sm text-rice400">
 					To start using, go to{' '}
@@ -32,7 +38,7 @@ const Home = ({ setActiveTab }) => {
 		)
 	}
 
-	return <>{!apiKey ? <Welcome /> : <ChatPage />}</>
+	return <>{!apiKey ? <Welcome /> : <ChatPage setActiveTab={setActiveTab} />}</>
 }
 
 export default Home

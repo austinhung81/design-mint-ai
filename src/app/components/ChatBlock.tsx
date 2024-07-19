@@ -1,8 +1,9 @@
 import React, { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from 'react'
-import { SparklesIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import MarkdownBlock from './MarkdownBlock'
 import { ChatMessage, MessageType } from '../models/ChatCompletion'
 import UserContentBlock from './UserContentBlock'
+import userIcon from '../assets/user.svg'
+import systemIcon from '../assets/system.svg'
 
 interface Props {
 	block: ChatMessage
@@ -63,21 +64,21 @@ const ChatBlock: React.FC<Props> = ({ block, loading }) => {
 	return (
 		<div
 			key={`chat-block-${block.id}`}
-			className={`group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50
+			className={`group w-full text-gray-800 dark:text-gray-100
             ${
 							block.role === 'assistant'
 								? 'bg-custom-gray dark:bg-gray-900'
 								: 'bg-white dark:bg-gray-850'
 						}`}
 		>
-			<div className="text-base md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl 3xl:max-w-6xl 4xl:max-w7xl p-2 flex lg:px-0 m-auto flex-col">
+			<div className="text-base p-4 flex m-auto flex-col">
 				<div className="w-full flex">
-					<div className="w-[30px] flex flex-col relative items-end mr-4">
-						<div className="relative flex h-[30px] w-[30px] p-0 rounded-sm items-center justify-center">
+					<div className="w-[24px] flex flex-col relative items-end mr-4">
+						<div className="relative flex h-[24px] w-[24px] p-0 rounded-sm items-center justify-center">
 							{block.role === 'user' ? (
-								<UserCircleIcon width={24} height={24} />
+								<img src={userIcon} alt="" />
 							) : block.role === 'assistant' ? (
-								<SparklesIcon key={`open-ai-logo-${block.id}`} />
+								<img src={systemIcon} alt="" />
 							) : null}
 						</div>
 					</div>
@@ -106,7 +107,7 @@ const ChatBlock: React.FC<Props> = ({ block, loading }) => {
 								) : (
 									<div
 										ref={contentRef}
-										className="markdown prose w-full break-words dark:prose-invert light"
+										className="markdown prose w-full break-words dark:prose-invert light text-left"
 									>
 										{block.role === 'user' ? (
 											<UserContentBlock

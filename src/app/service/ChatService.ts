@@ -295,11 +295,7 @@ export class ChatService {
 	}
 
 	static fetchModels = async (): Promise<OpenAIModel[]> => {
-		if (this.models !== null) {
-			return Promise.resolve(this.models)
-		}
 		const OPENAI_API_KEY = await fetchStorageAPIKey()
-		console.log(OPENAI_API_KEY)
 		this.models = fetch(MODELS_ENDPOINT, {
 			headers: {
 				Authorization: `Bearer ${OPENAI_API_KEY}`,
@@ -346,7 +342,6 @@ export class ChatService {
 	static async getModelById(modelId: string): Promise<OpenAIModel | null> {
 		try {
 			const models = await ChatService.getModels()
-			console.log('models', models)
 			const foundModel = models.find(model => model.id === modelId)
 			if (!foundModel) {
 				throw new CustomError(`Model with ID '${modelId}' not found.`, {

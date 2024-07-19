@@ -1,6 +1,5 @@
 import React from 'react'
-import { EllipsisHorizontalIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline'
-import './SubmitButton.css'
+import { EllipsisHorizontalIcon, ArrowLongRightIcon } from '@heroicons/react/24/outline'
 import Tooltip from '../../../components/ui/tooltip'
 
 interface SubmitButtonProps {
@@ -18,7 +17,7 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({ loading, disabled, n
 				name={name}
 				type="submit"
 				disabled={loading || disabled}
-				className="p-1 mr-2 rounded-md text-black dark:text-white enabled:text-white enabled:dark:text-black enabled:bg-black enabled:dark:bg-white disabled:opacity-40 relative z-10"
+				className="disabled:opacity-40 relative z-10 text-white"
 			>
 				{loading ? (
 					<EllipsisHorizontalIcon
@@ -28,7 +27,9 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({ loading, disabled, n
 						stroke={strokeColor}
 					/>
 				) : (
-					<PaperAirplaneIcon width={24} height={24} />
+					<div className="rounded-full bg-mint400 w-9 h-9 flex items-center justify-center">
+						<ArrowLongRightIcon width={24} height={24} />
+					</div>
 				)}
 			</button>
 		</Tooltip>

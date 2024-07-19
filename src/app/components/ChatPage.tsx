@@ -14,6 +14,7 @@ import { updateShowInSidebar } from '../service/ChatSettingsDB'
 import { Conversation } from '../service/ConversationService'
 import { FileDataRef } from '../models/FileData'
 import { useParams } from 'react-router-dom'
+import { Loader } from '../../../components/ui/loader'
 
 function getFirstValidString(...args: (string | undefined | null)[]): string {
 	for (const arg of args) {
@@ -24,7 +25,7 @@ function getFirstValidString(...args: (string | undefined | null)[]): string {
 	return ''
 }
 
-const ChatPage = ({ className = null }) => {
+const ChatPage = ({ setActiveTab, className = null }) => {
 	const [conversation, setConversation] = useState<Conversation | null>(null)
 	const [model, setModel] = useState<OpenAIModel | null>(null)
 	const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -34,15 +35,17 @@ const ChatPage = ({ className = null }) => {
 	const [allowAutoScroll, setAllowAutoScroll] = useState(true)
 	const buttonRef = useRef<HTMLButtonElement | null>(null)
 	const messageBoxRef = useRef<MessageBoxHandles>(null)
+	const [isLoading, setIsLoading] = useState(false)
 
 	useEffect(() => {
 		async function fetchStorageValues() {
-			const model = await getFigmaStorageValue('openai_model')
-			console.log(model)
-			const key = (model ?? '') as string
-			fetchModelById(key).then(setModel)
+			setIsLoading(true) // Start loading
+			const openaiModel = await getFigmaStorageValue('openai_model')
+			const key = (openaiModel ?? '') as string
+			fetchModelById(key)
+				.then(setModel)
+				.finally(() => setIsLoading(false)) // End loading after fetching
 		}
-
 		fetchStorageValues()
 	}, [])
 
@@ -291,6 +294,30 @@ const ChatPage = ({ className = null }) => {
 			}
 		}
 	}
+	if (isLoading) {
+		return (
+			<div className="flex justify-center items-center pt-10">
+				<Loader />
+			</div>
+		)
+	}
+	if (!model) {
+		return (
+			<div className="flex flex-col gap-60 p-4">
+				<h1 className="text-2xl text-left text-mint400">Oops! Invalid API Key</h1>
+				<span className="text-sm text-rice400">
+					Please go to{' '}
+					<span
+						onClick={() => setActiveTab('setting')}
+						className="underline underline-offset-2 text-mint400 cursor-pointer"
+					>
+						Settings
+					</span>{' '}
+					to check your API key again
+				</span>
+			</div>
+		)
+	}
 	return (
 		<div
 			className={`${className} overflow-hidden w-full h-full relative flex z-0 dark:bg-gray-900`}
@@ -317,7 +344,6 @@ const ChatPage = ({ className = null }) => {
 						allowImageAttachment="no"
 					/>
 				</main>
-				<div>{JSON.stringify(messages)}</div>
 			</div>
 		</div>
 	)

@@ -17,7 +17,7 @@ function App() {
 				<TabsTrigger value="history">History</TabsTrigger>
 				<TabsTrigger value="setting">Setting</TabsTrigger>
 			</TabsList>
-			<TabsContent value="home">
+			<TabsContent value="home" className="h-[calc(100vh-52px)] p-0">
 				<Home setActiveTab={setActiveTab} />
 			</TabsContent>
 			<TabsContent value="history">History Page</TabsContent>
