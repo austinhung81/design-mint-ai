@@ -20,3 +20,19 @@ export function getFigmaStorageValue(name) {
 
 	return promise
 }
+
+export function getProjectMainComponents() {
+	window.parent.postMessage({ pluginMessage: { type: 'get-main-component-names' } }, '*')
+
+	const promise = new Promise(function (resolve) {
+		window.addEventListener(
+			'message',
+			function (event) {
+				resolve(event.data.pluginMessage.names)
+			},
+			{ once: true }
+		)
+	})
+
+	return promise
+}

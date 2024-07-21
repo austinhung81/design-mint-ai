@@ -1,14 +1,17 @@
-import { getFigmaStorageValue } from '../../../lib/utils'
+import { getFigmaStorageValue, getProjectMainComponents } from '../../../lib/utils'
 import React, { useEffect, useState } from 'react'
 import ChatPage from './ChatPage'
 
 const Home = ({ setActiveTab }) => {
 	const [apiKey, setApiKey] = useState('')
+	//const [componentNames, setComponentNames] = useState([])
 
 	useEffect(() => {
 		async function fetchStorageValues() {
 			const apiKey = await getFigmaStorageValue('openai_api_key')
 			const openaiModel = await getFigmaStorageValue('openai_model')
+			const componentNames = await getProjectMainComponents()
+			console.log('componentNames', componentNames)
 			if (!apiKey || !openaiModel) {
 				setApiKey(null)
 				return
@@ -18,6 +21,7 @@ const Home = ({ setActiveTab }) => {
 		}
 
 		fetchStorageValues()
+		// Send a message to get main component names
 	}, []) // Depend on activeTab to re-run when it changes
 
 	const Welcome = () => {
