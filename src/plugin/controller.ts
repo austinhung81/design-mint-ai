@@ -1,9 +1,7 @@
 figma.showUI(__html__, { width: 600, height: 700, title: 'Mint AI' })
 
 function getMainComponentNames() {
-	const mainComponents = figma.root.findAll(
-		node => node.type === 'COMPONENT' && node.parent && node.parent.type === 'PAGE'
-	)
+	const mainComponents = figma.root.findAll(node => node.type === 'COMPONENT')
 	const componentNames = mainComponents.map(component => component.name)
 	return componentNames
 }

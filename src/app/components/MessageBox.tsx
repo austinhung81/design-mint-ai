@@ -16,12 +16,14 @@ import Tooltip from '../../../components/ui/tooltip'
 import FileDataPreview from './FileDataPreview'
 import { FileDataRef } from '../models/FileData'
 import { preprocessImage } from '../../../lib/ImageUtils'
+import MessageTextarea from './MessageTextarea'
 
 interface MessageBoxProps {
 	callApp: Function
 	loading: boolean
 	setLoading: (loading: boolean) => void
 	allowImageAttachment: string
+	componentNames: string[]
 }
 
 // Methods exposed to clients using useRef<MessageBoxHandles>
@@ -35,12 +37,13 @@ export interface MessageBoxHandles {
 }
 
 const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
-	({ loading, setLoading, callApp, allowImageAttachment }, ref) => {
+	({ loading, setLoading, callApp, allowImageAttachment, componentNames }, ref) => {
 		const textValue = useRef('')
 		const [isTextEmpty, setIsTextEmpty] = useState(true)
 		const textAreaRef = useRef<HTMLTextAreaElement>(null)
 		const resizeTimeoutRef = useRef<number | null>(null)
 		const [fileDataRef, setFileDataRef] = useState<FileDataRef[]>([])
+		const [isSubmitted, setIsSubmitted] = useState(false)
 
 		const setTextValue = (value: string) => {
 			textValue.current = value
@@ -235,7 +238,7 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 			const isEnter = e.key === 'Enter'
 
 			if (isEnter) {
-				if (e.shiftKey) {
+				/*if (e.shiftKey) {
 					return
 				} else {
 					if (!loading) {
@@ -248,11 +251,13 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 							allowImageAttachment === 'yes' ? fileDataRef : []
 						)
 					}
-				}
+				}*/
 			}
 		}
 
 		const handleTextChange = () => {
+			console.log('handleTextChange', textAreaRef.current?.value)
+			setIsSubmitted(false)
 			setIsTextEmpty(textAreaRef.current?.value.trim() === '')
 			handleTextValueUpdated()
 		}
@@ -267,6 +272,7 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 			if (textAreaRef.current) {
 				textAreaRef.current.style.height = 'auto'
 			}
+			setIsSubmitted(true)
 		}
 		const handleCancel = (event: React.MouseEvent<HTMLButtonElement>) => {
 			event.preventDefault()
@@ -312,19 +318,17 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 							</div>*/}
 
 							{/* Textarea */}
-							<textarea
+							<MessageTextarea
 								id="sendMessageInput"
 								name="message"
-								tabIndex={0}
 								ref={textAreaRef}
-								rows={2}
-								className="flex-1 m-0 resize-none border-0 bg-transparent text-sm focus:ring-0 focus-visible:ring-0 outline-none shadow-none placeholder:text-sm"
 								placeholder="Find anything......"
-								onKeyDown={checkForSpecialKey}
-								onChange={handleTextChange}
-								onPaste={handlePaste}
-								style={{ minWidth: 0 }}
-							></textarea>
+								onKeyDownEvent={checkForSpecialKey}
+								onChangeEvent={handleTextChange}
+								onPasteEvent={handlePaste}
+								clearValue={isSubmitted}
+								componentNames={componentNames}
+							/>
 
 							{/* Cancel/Submit Button */}
 							<div className="flex justify-end">

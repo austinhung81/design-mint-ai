@@ -1,13 +1,16 @@
 import { getFigmaStorageValue, getProjectMainComponents } from '../../../lib/utils'
 import React, { useEffect, useState } from 'react'
 import ChatPage from './ChatPage'
+import { Loader } from '../../../components/ui/loader'
 
 const Home = ({ setActiveTab }) => {
 	const [apiKey, setApiKey] = useState('')
-	//const [componentNames, setComponentNames] = useState([])
+	const [componentNames, setComponentNames] = useState([])
+	const [isFetching, setIsFetching] = useState(true)
 
 	useEffect(() => {
 		async function fetchStorageValues() {
+			setIsFetching(true)
 			const apiKey = await getFigmaStorageValue('openai_api_key')
 			const openaiModel = await getFigmaStorageValue('openai_model')
 			const componentNames = await getProjectMainComponents()
@@ -18,7 +21,10 @@ const Home = ({ setActiveTab }) => {
 			}
 			const userAPIKey = (apiKey ?? '') as string
 			setApiKey(userAPIKey)
+			setComponentNames(componentNames as string[])
+			setIsFetching(false)
 		}
+		setIsFetching
 
 		fetchStorageValues()
 		// Send a message to get main component names
@@ -42,7 +48,23 @@ const Home = ({ setActiveTab }) => {
 		)
 	}
 
-	return <>{!apiKey ? <Welcome /> : <ChatPage setActiveTab={setActiveTab} />}</>
+	if (isFetching) {
+		return (
+			<div className="flex justify-center items-center pt-10">
+				<Loader />
+			</div>
+		)
+	}
+
+	return (
+		<>
+			{!apiKey ? (
+				<Welcome />
+			) : (
+				<ChatPage setActiveTab={setActiveTab} componentNames={componentNames} />
+			)}
+		</>
+	)
 }
 
 export default Home

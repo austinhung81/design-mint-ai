@@ -25,7 +25,7 @@ function getFirstValidString(...args: (string | undefined | null)[]): string {
 	return ''
 }
 
-const ChatPage = ({ setActiveTab, className = null }) => {
+const ChatPage = ({ setActiveTab, className = null, componentNames = null }) => {
 	const [conversation, setConversation] = useState<Conversation | null>(null)
 	const [model, setModel] = useState<OpenAIModel | null>(null)
 	const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -341,6 +341,7 @@ const ChatPage = ({ setActiveTab, className = null }) => {
 						callApp={callApp}
 						loading={loading}
 						setLoading={setLoading}
+						componentNames={componentNames}
 						allowImageAttachment="no"
 					/>
 				</main>
