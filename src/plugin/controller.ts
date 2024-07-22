@@ -7,14 +7,20 @@ function getMainComponentNames() {
 }
 
 figma.ui.onmessage = async msg => {
-	if (msg.type === 'set-value') {
-		await figma.clientStorage.setAsync(msg.name, msg.value)
-	} else if (msg.type === 'get-value') {
-		console.log(msg)
-		const value = await figma.clientStorage.getAsync(msg.name)
-		figma.ui.postMessage({ type: 'return-value', value: value })
-	} else if (msg.type === 'get-main-component-names') {
-		const componentNames = getMainComponentNames()
-		figma.ui.postMessage({ type: 'main-component-names', names: componentNames })
+	try {
+		if (msg.type === 'set-value') {
+			await figma.clientStorage.setAsync(msg.name, msg.value)
+		} else if (msg.type === 'get-value') {
+			const value = await figma.clientStorage.getAsync(msg.name)
+			figma.ui.postMessage({ type: 'return-value', value: value })
+		} else if (msg.type === 'get-main-component-names') {
+			const componentNames = getMainComponentNames()
+			figma.ui.postMessage({ type: 'main-component-names', names: componentNames })
+		} else if (msg.type === 'get-user') {
+			figma.ui.postMessage({ type: 'user', user: figma.currentUser })
+		}
+	} catch (error) {
+		console.error('Error processing message:', msg, error)
+		figma.ui.postMessage({ type: 'error', message: error.message })
 	}
 }

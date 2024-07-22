@@ -1,5 +1,5 @@
 export interface ChatSettings {
-	id: number
+	id: string
 	author: string
 	icon?: null
 	name: string

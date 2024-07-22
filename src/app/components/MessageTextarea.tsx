@@ -17,8 +17,7 @@ import {
 	getTriggerOffset,
 	replaceValue,
 } from '../../../lib/utils'
-
-import * as Ariakit from '@ariakit/react'
+import { Combobox, ComboboxPopover, ComboboxItem, useComboboxStore } from '@ariakit/react/combobox'
 import { matchSorter } from 'match-sorter'
 
 interface MessageTextareaProps {
@@ -64,7 +63,7 @@ const MessageTextarea = forwardRef<HTMLTextAreaElement, MessageTextareaProps>(
 		const [trigger, setTrigger] = useState<string | null>(null)
 		const [caretOffset, setCaretOffset] = useState<number | null>(null)
 
-		const combobox = Ariakit.useComboboxStore()
+		const combobox = useComboboxStore()
 
 		const searchValue = combobox.useState('value')
 		const deferredSearchValue = useDeferredValue(searchValue)
@@ -131,7 +130,7 @@ const MessageTextarea = forwardRef<HTMLTextAreaElement, MessageTextareaProps>(
 
 		return (
 			<div className="wrapper">
-				<Ariakit.Combobox
+				<Combobox
 					store={combobox}
 					autoSelect
 					value={value}
@@ -167,7 +166,7 @@ const MessageTextarea = forwardRef<HTMLTextAreaElement, MessageTextareaProps>(
 						/>
 					}
 				/>
-				<Ariakit.ComboboxPopover
+				<ComboboxPopover
 					store={combobox}
 					hidden={!hasMatches}
 					unmountOnHide
@@ -180,7 +179,7 @@ const MessageTextarea = forwardRef<HTMLTextAreaElement, MessageTextareaProps>(
 					className="relative z-50 flex flex-col overflow-auto overscroll-contain border border-rice300 bg-white text-rice500 w-[245px] rounded-[8px]"
 				>
 					{matches.map(value => (
-						<Ariakit.ComboboxItem
+						<ComboboxItem
 							key={value}
 							value={value}
 							focusOnHover
@@ -188,9 +187,9 @@ const MessageTextarea = forwardRef<HTMLTextAreaElement, MessageTextareaProps>(
 							className="combobox-item flex cursor-default items-center gap-2 py-2 px-3 hover:bg-rice200 data-[active-item]:bg-rice200 leading-6"
 						>
 							<span>{value}</span>
-						</Ariakit.ComboboxItem>
+						</ComboboxItem>
 					))}
-				</Ariakit.ComboboxPopover>
+				</ComboboxPopover>
 			</div>
 		)
 	}

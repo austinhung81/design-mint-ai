@@ -40,6 +40,22 @@ export function getProjectMainComponents() {
 	return promise
 }
 
+export function getUser() {
+	window.parent.postMessage({ pluginMessage: { type: 'get-user' } }, '*')
+
+	const promise = new Promise(function (resolve) {
+		window.addEventListener(
+			'message',
+			function (event) {
+				resolve(event.data.pluginMessage.user)
+			},
+			{ once: true }
+		)
+	})
+
+	return promise
+}
+
 export function getTriggerOffset(element: HTMLTextAreaElement, triggers = defaultTriggers) {
 	const { value, selectionStart } = element
 	for (let i = selectionStart; i >= 0; i--) {

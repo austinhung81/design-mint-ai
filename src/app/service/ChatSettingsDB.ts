@@ -51,7 +51,7 @@ class ChatSettingsDB extends Dexie {
 		this.on('populate', () => {
 			this.chatSettings.bulkAdd([
 				{
-					id: 1,
+					id: '1',
 					author: 'system',
 					name: 'React UI Developer',
 					description: 'Focused on React/Typescript/TailwindCSS development.',
@@ -63,7 +63,7 @@ class ChatSettingsDB extends Dexie {
 					top_p: null,
 				},
 				{
-					id: 2,
+					id: '2',
 					author: 'system',
 					name: 'Math Tutor',
 					description: 'Focused on solving math problems.',

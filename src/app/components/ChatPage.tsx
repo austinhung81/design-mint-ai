@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { getFigmaStorageValue } from '../../../lib/utils'
+import { getFigmaStorageValue, getUser } from '../../../lib/utils'
 import { ChatService } from '../service/ChatService'
 import { ChatMessage, MessageType, Role } from '../models/ChatCompletion'
 import { CustomError } from '../service/CustomError'
@@ -11,10 +11,18 @@ import { OpenAIModel } from '../models/model'
 import { ChatSettings } from '../models/ChatSettings'
 import { DEFAULT_INSTRUCTIONS, MAX_TITLE_LENGTH } from '../constants/appConstants'
 import { updateShowInSidebar } from '../service/ChatSettingsDB'
-import { Conversation } from '../service/ConversationService'
+import ConversationService, { Conversation } from '../service/ConversationService'
 import { FileDataRef } from '../models/FileData'
 import { useParams } from 'react-router-dom'
 import { Loader } from '../../../components/ui/loader'
+
+export interface User {
+	id: string | null
+	name: string
+	photoUrl: string | null
+	color: string
+	sessionId: number
+}
 
 function getFirstValidString(...args: (string | undefined | null)[]): string {
 	for (const arg of args) {
@@ -36,18 +44,33 @@ const ChatPage = ({ setActiveTab, className = null, componentNames = null }) => 
 	const buttonRef = useRef<HTMLButtonElement | null>(null)
 	const messageBoxRef = useRef<MessageBoxHandles>(null)
 	const [isLoading, setIsLoading] = useState(false)
+	const [userId, setUserId] = useState(null)
 
 	useEffect(() => {
 		async function fetchStorageValues() {
 			setIsLoading(true) // Start loading
 			const openaiModel = await getFigmaStorageValue('openai_model')
+			const user = (await getUser()) as User
 			const key = (openaiModel ?? '') as string
 			fetchModelById(key)
 				.then(setModel)
 				.finally(() => setIsLoading(false)) // End loading after fetching
+			setUserId(user?.id)
 		}
 		fetchStorageValues()
 	}, [])
+
+	useEffect(() => {
+		if (messages.length === 0) {
+			setConversation(null)
+		}
+		if (conversation && conversation.id) {
+			// Only update if there are messages
+			if (messages.length > 0) {
+				ConversationService.updateConversation(conversation, messages)
+			}
+		}
+	}, [messages])
 
 	const handleQuoteSelectedText = () => {
 		const selection = window.getSelection()
@@ -95,7 +118,7 @@ const ChatPage = ({ setActiveTab, className = null, componentNames = null }) => 
 
 	function getEffectiveChatSettings(): ChatSettings {
 		return {
-			id: 0,
+			id: '0',
 			author: 'system',
 			name: 'default',
 			model: model?.id || DEFAULT_MODEL,
@@ -103,13 +126,14 @@ const ChatPage = ({ setActiveTab, className = null, componentNames = null }) => 
 	}
 
 	function startConversation(message: string) {
-		const id = Date.now()
+		const id = Date.now().toString()
 		const timestamp = Date.now()
 		let shortenedText = getTitle(message)
 		let instructions = getFirstValidString(DEFAULT_INSTRUCTIONS)
 		const conversation: Conversation = {
 			id: id,
-			gid: getEffectiveChatSettings().id,
+			userId: userId,
+			gid: Number(getEffectiveChatSettings().id),
 			timestamp: timestamp,
 			title: shortenedText,
 			model: model?.id || DEFAULT_MODEL,
@@ -118,7 +142,7 @@ const ChatPage = ({ setActiveTab, className = null, componentNames = null }) => 
 		}
 		console.log('Starting conversation:', conversation)
 		setConversation(conversation)
-		//ConversationService.addConversation(conversation)
+		ConversationService.addConversation(conversation)
 		if (gid) {
 			//navigate(`/g/${gid}/c/${conversation.id}`)
 			updateShowInSidebar(Number(gid), 1)

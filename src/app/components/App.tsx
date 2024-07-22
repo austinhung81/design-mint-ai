@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui
 import '../style.css'
 import Setting from './Setting'
 import Home from './Home'
+import ConversationList from './ConversationList'
 
 function App() {
 	const [activeTab, setActiveTab] = useState('home')
@@ -20,7 +21,9 @@ function App() {
 			<TabsContent value="home" className="h-[calc(100vh-52px)] p-0">
 				<Home setActiveTab={setActiveTab} />
 			</TabsContent>
-			<TabsContent value="history">History Page</TabsContent>
+			<TabsContent value="history">
+				<ConversationList />
+			</TabsContent>
 			<TabsContent value="setting">
 				<Setting />
 			</TabsContent>

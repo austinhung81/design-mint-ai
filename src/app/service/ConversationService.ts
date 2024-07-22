@@ -1,10 +1,26 @@
-import Dexie from 'dexie'
+import { db } from '../../../firebaseConfig'
+import {
+	collection,
+	doc,
+	getDoc,
+	setDoc,
+	updateDoc,
+	deleteDoc,
+	getDocs,
+	query,
+	orderBy,
+	limit,
+	where,
+} from 'firebase/firestore'
 import { EventEmitter } from './EventEmitter'
 import FileDataService from './FileDataService'
 import { ChatMessage } from '../models/ChatCompletion'
+import { getUser } from '../../../lib/utils'
+import { User } from '../components/ChatPage'
 
 export interface Conversation {
-	id: number
+	id: string // Changed from number to string
+	userId: string
 	gid: number
 	timestamp: number
 	title: string
@@ -16,28 +32,19 @@ export interface Conversation {
 
 export interface ConversationChangeEvent {
 	action: 'add' | 'edit' | 'delete'
-	id: number
+	id: string // Changed from number to string
 	conversation?: Conversation // not set on delete
 }
 
-class ConversationDB extends Dexie {
-	conversations: Dexie.Table<Conversation, number>
-
-	constructor() {
-		super('conversationsDB')
-		this.version(1).stores({
-			conversations: '&id, gid, timestamp, title, model',
-		})
-		this.conversations = this.table('conversations')
-	}
-}
-
-const db = new ConversationDB()
+const conversationsCollection = collection(db, 'conversations')
 const NUM_INITIAL_CONVERSATIONS = 200
 
 class ConversationService {
-	static async getConversationById(id: number): Promise<Conversation | undefined> {
-		return db.conversations.get(id)
+	static async getConversationById(id: string): Promise<Conversation | undefined> {
+		// Changed from number to string
+		const docRef = doc(conversationsCollection, id)
+		const docSnap = await getDoc(docRef)
+		return docSnap.exists() ? (docSnap.data() as Conversation) : undefined
 	}
 
 	static async getChatMessages(conversation: Conversation): Promise<ChatMessage[]> {
@@ -61,22 +68,27 @@ class ConversationService {
 	}
 
 	static async searchConversationsByTitle(searchString: string): Promise<Conversation[]> {
-		searchString = searchString.toLowerCase()
-		return db.conversations
-			.filter(conversation => conversation.title.toLowerCase().includes(searchString))
-			.toArray()
+		const q = query(
+			conversationsCollection,
+			where('title', '>=', searchString),
+			where('title', '<=', searchString + '\uf8ff')
+		)
+		const querySnapshot = await getDocs(q)
+		return querySnapshot.docs.map(doc => doc.data() as Conversation)
 	}
 
-	// todo: Currently we are not indexing messages since it is expensive
 	static async searchWithinConversations(searchString: string): Promise<Conversation[]> {
-		return db.conversations
+		const querySnapshot = await getDocs(conversationsCollection)
+		return querySnapshot.docs
+			.map(doc => doc.data() as Conversation)
 			.filter(conversation => conversation.messages.includes(searchString))
-			.toArray()
 	}
 
-	// This is adding a new conversation object with empty messages "[]"
 	static async addConversation(conversation: Conversation): Promise<void> {
-		await db.conversations.add(conversation)
+		console.log('conversation', conversation)
+		console.log('conversation.id', conversation.id)
+		const docRef = doc(conversationsCollection, conversation.id)
+		await setDoc(docRef, conversation)
 		let event: ConversationChangeEvent = {
 			action: 'add',
 			id: conversation.id,
@@ -119,7 +131,8 @@ class ConversationService {
 		}
 
 		conversation.messages = JSON.stringify(messagesCopy)
-		await db.conversations.put(conversation)
+		const docRef = doc(conversationsCollection, conversation.id)
+		await setDoc(docRef, conversation, { merge: true })
 		let event: ConversationChangeEvent = {
 			action: 'edit',
 			id: conversation.id,
@@ -128,17 +141,18 @@ class ConversationService {
 		conversationsEmitter.emit('conversationChangeEvent', event)
 	}
 
-	static async updateConversationPartial(
-		conversation: Conversation,
-		changes: any
-	): Promise<number> {
-		// todo: currently not emitting event for this case
-		return db.conversations.update(conversation.id, changes)
+	static async updateConversationPartial(conversation: Conversation, changes: any): Promise<void> {
+		const docRef = doc(conversationsCollection, conversation.id)
+		await updateDoc(docRef, changes)
 	}
 
-	static async deleteConversation(id: number): Promise<void> {
-		const conversation = await db.conversations.get(id)
-		if (conversation) {
+	static async deleteConversation(id: string): Promise<void> {
+		// Changed from number to string
+		const docRef = doc(conversationsCollection, id)
+		const docSnap = await getDoc(docRef)
+
+		if (docSnap.exists()) {
+			const conversation = docSnap.data() as Conversation
 			const messages: ChatMessage[] = JSON.parse(conversation.messages)
 
 			for (let message of messages) {
@@ -152,8 +166,7 @@ class ConversationService {
 					)
 				}
 			}
-			await db.conversations.delete(id)
-
+			await deleteDoc(docRef)
 			let event: ConversationChangeEvent = { action: 'delete', id: id }
 			conversationsEmitter.emit('conversationChangeEvent', event)
 		} else {
@@ -162,25 +175,32 @@ class ConversationService {
 	}
 
 	static async deleteAllConversations(): Promise<void> {
-		await db.conversations.clear()
+		const querySnapshot = await getDocs(conversationsCollection)
+		const batch = db.batch()
+		querySnapshot.forEach(doc => {
+			batch.delete(doc.ref)
+		})
+		await batch.commit()
 		await FileDataService.deleteAllFileData()
-		let event: ConversationChangeEvent = { action: 'delete', id: 0 }
+		let event: ConversationChangeEvent = { action: 'delete', id: '0' }
 		conversationsEmitter.emit('conversationChangeEvent', event)
 	}
 
 	static async loadRecentConversationsTitleOnly(): Promise<Conversation[]> {
+		const user = (await getUser()) as User
 		try {
-			const conversations = await db.conversations
-				.orderBy('timestamp')
-				.reverse()
-				.limit(NUM_INITIAL_CONVERSATIONS)
-				.toArray(conversations =>
-					conversations.map(conversation => {
-						const conversationWithEmptyMessages = { ...conversation, messages: '[]' }
-						return conversationWithEmptyMessages
-					})
-				)
-			return conversations
+			const q = query(
+				conversationsCollection,
+				where('userId', '==', user.id),
+				orderBy('timestamp', 'desc'),
+				limit(NUM_INITIAL_CONVERSATIONS)
+			)
+			const querySnapshot = await getDocs(q)
+			return querySnapshot.docs.map(doc => {
+				const conversation = doc.data() as Conversation
+				const conversationWithEmptyMessages = { ...conversation, messages: '[]' }
+				return conversationWithEmptyMessages
+			})
 		} catch (error) {
 			console.error('Error loading recent conversations:', error)
 			throw error
@@ -188,15 +208,18 @@ class ConversationService {
 	}
 
 	static async countConversationsByGid(id: number): Promise<number> {
-		return db.conversations.where('gid').equals(id).count()
+		const q = query(conversationsCollection, where('gid', '==', id))
+		const querySnapshot = await getDocs(q)
+		return querySnapshot.size
 	}
 
 	static async deleteConversationsByGid(gid: number): Promise<void> {
-		const conversationsToDelete = await db.conversations.where('gid').equals(gid).toArray()
-		for (const conversation of conversationsToDelete) {
-			await ConversationService.deleteConversation(conversation.id)
+		const q = query(conversationsCollection, where('gid', '==', gid))
+		const querySnapshot = await getDocs(q)
+		for (const doc of querySnapshot.docs) {
+			await ConversationService.deleteConversation(doc.id)
 		}
-		let event: ConversationChangeEvent = { action: 'delete', id: 0 }
+		let event: ConversationChangeEvent = { action: 'delete', id: '0' }
 		conversationsEmitter.emit('conversationChangeEvent', event)
 	}
 }

@@ -14,7 +14,7 @@ const Home = ({ setActiveTab }) => {
 			const apiKey = await getFigmaStorageValue('openai_api_key')
 			const openaiModel = await getFigmaStorageValue('openai_model')
 			const componentNames = await getProjectMainComponents()
-			console.log('componentNames', componentNames)
+
 			if (!apiKey || !openaiModel) {
 				setApiKey(null)
 				return
@@ -24,7 +24,6 @@ const Home = ({ setActiveTab }) => {
 			setComponentNames(componentNames as string[])
 			setIsFetching(false)
 		}
-		setIsFetching
 
 		fetchStorageValues()
 		// Send a message to get main component names
