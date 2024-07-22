@@ -6,7 +6,9 @@
 	"scripts": {
 		"build": "webpack --mode=production",
 		"build:watch": "webpack --mode=development --watch",
-		"prettier:format": "prettier --write '**/*.{js,jsx,ts,tsx,css,json}' "
+		"prettier:format": "prettier --write '**/*.{js,jsx,ts,tsx,css,json}' ",
+		"env:pull": "npx dotenv-vault@latest pull",
+		"env:push": "npx dotenv-vault@latest push"
 	},
 	"dependencies": {
 		"@ariakit/react": "^0.4.7",
@@ -43,6 +45,7 @@
 		"@types/react-dom": "^18.0.6",
 		"autoprefixer": "^10.4.19",
 		"css-loader": "^7.1.2",
+		"dotenv-webpack": "^8.1.0",
 		"html-webpack-plugin": "^5.5.0",
 		"husky": "^8.0.1",
 		"lint-staged": "^13.0.3",

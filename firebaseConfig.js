@@ -2,7 +2,7 @@ import { initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
-	apiKey: 'AIzaSyAwtwf7jodz2Y18M3nbdUUoFV50qJYv6PY',
+	apiKey: process.env.FIREBASE_API_KEY,
 	authDomain: 'design-mint-ai-3d5c8.firebaseapp.com',
 	databaseURL: 'https://design-mint-ai-3d5c8-default-rtdb.asia-southeast1.firebasedatabase.app',
 	projectId: 'design-mint-ai-3d5c8',
