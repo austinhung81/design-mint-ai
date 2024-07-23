@@ -1,8 +1,18 @@
 figma.showUI(__html__, { width: 600, height: 700, title: 'Mint AI' })
 
 function getMainComponentNames() {
+	console.log('Getting main component names', figma.root)
 	const mainComponents = figma.root.findAll(node => node.type === 'COMPONENT')
-	const componentNames = mainComponents.map(component => component.name)
+	let componentNames = mainComponents.map(component => {
+		// Check if the component has a parent and the parent has a name
+		const parentName = component.parent && component.parent.name ? component.parent.name : ''
+		return parentName
+	})
+
+	// Optional: Ensure names are unique if necessary
+	// This step might not be needed if parent names are sufficient for distinction
+	componentNames = [...new Set(componentNames)] // Remove duplicates
+	console.log('Main component names:', componentNames)
 	return componentNames
 }
 

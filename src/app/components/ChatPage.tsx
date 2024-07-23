@@ -389,25 +389,7 @@ const ChatPage = ({
 	} else {
 		return (
 			<div className="relative">
-				{!conversation ? (
-					<div className="absolute z-40">
-						<h1 className="text-2xl text-left text-mint400 p-4">
-							We can help to find your designs.
-							<br /> Here are template you can try:
-						</h1>
-						<div className="flex flex-col gap-3 pl-4">
-							{predefinedMessages.map((message, index) => (
-								<div
-									key={index}
-									onClick={() => callApp(message, [])}
-									className="cursor-pointer text-sm text-rice400 border border-rice300 rounded-[36px] leading-5 py-2 px-4 text-left"
-								>
-									{message}
-								</div>
-							))}
-						</div>
-					</div>
-				) : (
+				{conversation && (
 					<a
 						className="absolute cursor-pointer flex items-center right-4 -top-9 underline text-mint400"
 						onClick={() => newConversation()}
@@ -424,15 +406,35 @@ const ChatPage = ({
 							className="relative h-full transition-width flex flex-col overflow-hidden items-stretch flex-1"
 							onMouseUp={handleMouseUp}
 						>
-							<Chat
-								chatBlocks={messages}
-								onChatScroll={handleUserScroll}
-								conversation={conversation}
-								model={model?.id || DEFAULT_MODEL}
-								onModelChange={handleModelChange}
-								allowAutoScroll={allowAutoScroll}
-								loading={loading}
-							/>
+							{conversation ? (
+								<Chat
+									chatBlocks={messages}
+									onChatScroll={handleUserScroll}
+									conversation={conversation}
+									model={model?.id || DEFAULT_MODEL}
+									onModelChange={handleModelChange}
+									allowAutoScroll={allowAutoScroll}
+									loading={loading}
+								/>
+							) : (
+								<div className="h-[calc(100%-188px)]">
+									<h1 className="text-2xl text-left text-mint400 p-4">
+										We can help to find your designs.
+										<br /> Here are template you can try:
+									</h1>
+									<div className="flex flex-col gap-3 px-4">
+										{predefinedMessages.map((message, index) => (
+											<div
+												key={index}
+												onClick={() => callApp(message, [])}
+												className="cursor-pointer text-sm text-rice400 border border-rice300 rounded-[36px] leading-5 py-2 px-4 text-left"
+											>
+												{message}
+											</div>
+										))}
+									</div>
+								</div>
+							)}
 							<MessageBox
 								ref={messageBoxRef}
 								callApp={callApp}

@@ -71,7 +71,7 @@ const MessageTextarea = forwardRef<HTMLTextAreaElement, MessageTextareaProps>(
 		const matches = useMemo(() => {
 			return matchSorter(getList({ trigger, componentNames }), deferredSearchValue, {
 				baseSort: (a, b) => (a.index < b.index ? -1 : 1),
-			}).slice(0, 10)
+			})
 		}, [trigger, deferredSearchValue])
 
 		const hasMatches = !!matches.length
@@ -176,7 +176,7 @@ const MessageTextarea = forwardRef<HTMLTextAreaElement, MessageTextareaProps>(
 						if (!textarea) return null
 						return getAnchorRect(textarea)
 					}}
-					className="relative z-50 flex flex-col overflow-auto overscroll-contain border border-rice300 bg-white text-rice500 w-[245px] rounded-[8px]"
+					className="relative max-h-[200px] flex flex-col overflow-auto overscroll-contain border border-rice300 bg-white text-rice500 w-[245px] rounded-[8px]"
 				>
 					{matches.map(value => (
 						<ComboboxItem
