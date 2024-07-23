@@ -7,27 +7,31 @@ const Home = ({ setActiveTab }) => {
 	const [apiKey, setApiKey] = useState('')
 	const [componentNames, setComponentNames] = useState([])
 	const [isFetching, setIsFetching] = useState(true)
+	const [activeConversationId, setActiveConversationId] = useState('')
 
 	useEffect(() => {
 		async function fetchStorageValues() {
 			setIsFetching(true)
 			const apiKey = await getFigmaStorageValue('openai_api_key')
 			const openaiModel = await getFigmaStorageValue('openai_model')
+			const activeConversationId = await getFigmaStorageValue('active_conversation_id')
 			const componentNames = await getProjectMainComponents()
 
 			if (!apiKey || !openaiModel) {
 				setApiKey(null)
+				setIsFetching(false)
 				return
 			}
 			const userAPIKey = (apiKey ?? '') as string
+			console.log('activeConversationId', activeConversationId)
 			setApiKey(userAPIKey)
 			setComponentNames(componentNames as string[])
+			setActiveConversationId(activeConversationId as string)
 			setIsFetching(false)
 		}
 
 		fetchStorageValues()
-		// Send a message to get main component names
-	}, []) // Depend on activeTab to re-run when it changes
+	}, [])
 
 	const Welcome = () => {
 		return (
@@ -60,7 +64,11 @@ const Home = ({ setActiveTab }) => {
 			{!apiKey ? (
 				<Welcome />
 			) : (
-				<ChatPage setActiveTab={setActiveTab} componentNames={componentNames} />
+				<ChatPage
+					setActiveTab={setActiveTab}
+					componentNames={componentNames}
+					activeConversationId={activeConversationId}
+				/>
 			)}
 		</>
 	)

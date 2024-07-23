@@ -10,11 +10,11 @@ import { NotificationService } from '../service/NotificationService'
 import { OpenAIModel } from '../models/model'
 import { ChatSettings } from '../models/ChatSettings'
 import { DEFAULT_INSTRUCTIONS, MAX_TITLE_LENGTH } from '../constants/appConstants'
-import { updateShowInSidebar } from '../service/ChatSettingsDB'
 import ConversationService, { Conversation } from '../service/ConversationService'
 import { FileDataRef } from '../models/FileData'
-import { useParams } from 'react-router-dom'
 import { Loader } from '../../../components/ui/loader'
+import addIcon from '../assets/add.svg'
+import { predefinedMessages } from '../service/predefinedMessages'
 
 export interface User {
 	id: string | null
@@ -33,12 +33,15 @@ function getFirstValidString(...args: (string | undefined | null)[]): string {
 	return ''
 }
 
-const ChatPage = ({ setActiveTab, className = null, componentNames = null }) => {
+const ChatPage = ({
+	setActiveTab,
+	className = null,
+	componentNames = null,
+	activeConversationId,
+}) => {
 	const [conversation, setConversation] = useState<Conversation | null>(null)
 	const [model, setModel] = useState<OpenAIModel | null>(null)
 	const [messages, setMessages] = useState<ChatMessage[]>([])
-	const { gid } = useParams<{ id?: string; gid?: string }>()
-	//const navigate = useNavigate()
 	const [loading, setLoading] = useState(false)
 	const [allowAutoScroll, setAllowAutoScroll] = useState(true)
 	const buttonRef = useRef<HTMLButtonElement | null>(null)
@@ -48,17 +51,34 @@ const ChatPage = ({ setActiveTab, className = null, componentNames = null }) => 
 
 	useEffect(() => {
 		async function fetchStorageValues() {
-			setIsLoading(true) // Start loading
+			setIsLoading(true)
 			const openaiModel = await getFigmaStorageValue('openai_model')
 			const user = (await getUser()) as User
 			const key = (openaiModel ?? '') as string
 			fetchModelById(key)
-				.then(setModel)
-				.finally(() => setIsLoading(false)) // End loading after fetching
+				.then(async (model: OpenAIModel | null) => {
+					setModel(model)
+					if (activeConversationId) {
+						await handleSelectedConversation(activeConversationId)
+					}
+				})
+				.finally(() => setIsLoading(false))
 			setUserId(user?.id)
 		}
 		fetchStorageValues()
 	}, [])
+
+	useEffect(() => {
+		const fetchConversation = async () => {
+			if (activeConversationId) {
+				await handleSelectedConversation(activeConversationId)
+			} else {
+				newConversation()
+			}
+		}
+
+		fetchConversation()
+	}, [activeConversationId])
 
 	useEffect(() => {
 		if (messages.length === 0) {
@@ -71,6 +91,41 @@ const ChatPage = ({ setActiveTab, className = null, componentNames = null }) => 
 			}
 		}
 	}, [messages])
+
+	const newConversation = () => {
+		setConversation(null)
+		clearInputArea()
+		setMessages([])
+		messageBoxRef.current?.focusTextarea()
+	}
+
+	const handleSelectedConversation = (id: string | null): Promise<void> => {
+		return new Promise(resolve => {
+			if (id && id.length > 0) {
+				ConversationService.getConversationById(id).then(conversation => {
+					if (conversation) {
+						setConversation(conversation)
+						clearInputArea()
+						ConversationService.getChatMessages(conversation).then((messages: ChatMessage[]) => {
+							if (messages.length == 0) {
+								console.warn('possible state problem')
+							} else {
+								setMessages(messages)
+							}
+							resolve() // Resolve the promise here after all async operations
+						})
+					} else {
+						resolve() // Resolve the promise if no conversation is found
+					}
+				})
+			} else {
+				newConversation()
+				resolve() // Resolve the promise if id is null or empty
+			}
+			setAllowAutoScroll(true)
+			messageBoxRef.current?.focusTextarea()
+		})
+	}
 
 	const handleQuoteSelectedText = () => {
 		const selection = window.getSelection()
@@ -143,12 +198,6 @@ const ChatPage = ({ setActiveTab, className = null, componentNames = null }) => 
 		console.log('Starting conversation:', conversation)
 		setConversation(conversation)
 		ConversationService.addConversation(conversation)
-		if (gid) {
-			//navigate(`/g/${gid}/c/${conversation.id}`)
-			updateShowInSidebar(Number(gid), 1)
-		} else {
-			//navigate(`/c/${conversation.id}`)
-		}
 	}
 
 	const addMessage = (
@@ -324,8 +373,7 @@ const ChatPage = ({ setActiveTab, className = null, componentNames = null }) => 
 				<Loader />
 			</div>
 		)
-	}
-	if (!model) {
+	} else if (!model && !conversation) {
 		return (
 			<div className="flex flex-col gap-60 p-4">
 				<h1 className="text-2xl text-left text-mint400">Oops! Invalid API Key</h1>
@@ -341,37 +389,67 @@ const ChatPage = ({ setActiveTab, className = null, componentNames = null }) => 
 				</span>
 			</div>
 		)
-	}
-	return (
-		<div
-			className={`${className} overflow-hidden w-full h-full relative flex z-0 dark:bg-gray-900`}
-		>
-			<div className="flex flex-col items-stretch w-full h-full">
-				<main
-					className="relative h-full transition-width flex flex-col overflow-hidden items-stretch flex-1"
-					onMouseUp={handleMouseUp}
+	} else {
+		return (
+			<div className="relative">
+				{!conversation ? (
+					<div className="absolute z-40">
+						<h1 className="text-2xl text-left text-mint400 p-4">
+							We can help to find your designs.
+							<br /> Here are template you can try:
+						</h1>
+						<div className="flex flex-col gap-3 pl-4">
+							{predefinedMessages.map((message, index) => (
+								<div
+									key={index}
+									onClick={() => callApp(message, [])}
+									className="cursor-pointer text-sm text-rice400 border border-rice300 rounded-[36px] leading-5 py-2 px-4 text-left"
+								>
+									{message}
+								</div>
+							))}
+						</div>
+					</div>
+				) : (
+					<a
+						className="absolute cursor-pointer flex items-center right-4 -top-9 underline text-mint400"
+						onClick={() => newConversation()}
+					>
+						<img src={addIcon} width={16} height={16} />
+						<span>New Search</span>
+					</a>
+				)}
+				<div
+					className={`${className} overflow-hidden w-full h-full relative flex z-0 dark:bg-gray-900`}
 				>
-					<Chat
-						chatBlocks={messages}
-						onChatScroll={handleUserScroll}
-						conversation={conversation}
-						model={model?.id || DEFAULT_MODEL}
-						onModelChange={handleModelChange}
-						allowAutoScroll={allowAutoScroll}
-						loading={loading}
-					/>
-					<MessageBox
-						ref={messageBoxRef}
-						callApp={callApp}
-						loading={loading}
-						setLoading={setLoading}
-						componentNames={componentNames}
-						allowImageAttachment="no"
-					/>
-				</main>
+					<div className="flex flex-col items-stretch w-full h-full">
+						<main
+							className="relative h-full transition-width flex flex-col overflow-hidden items-stretch flex-1"
+							onMouseUp={handleMouseUp}
+						>
+							<Chat
+								chatBlocks={messages}
+								onChatScroll={handleUserScroll}
+								conversation={conversation}
+								model={model?.id || DEFAULT_MODEL}
+								onModelChange={handleModelChange}
+								allowAutoScroll={allowAutoScroll}
+								loading={loading}
+							/>
+							<MessageBox
+								ref={messageBoxRef}
+								callApp={callApp}
+								loading={loading}
+								setLoading={setLoading}
+								componentNames={componentNames}
+								allowImageAttachment="no"
+							/>
+						</main>
+					</div>
+				</div>
 			</div>
-		</div>
-	)
+		)
+	}
 }
 
 export default ChatPage

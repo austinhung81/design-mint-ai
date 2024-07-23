@@ -6,12 +6,15 @@ import ConversationService, {
 	conversationsEmitter,
 } from '../service/ConversationService'
 import ConversationListItem from './ConversationListItem'
+import { Loader } from '../../../components/ui/loader'
 
-const ConversationList: React.FC = () => {
+const ConversationList = ({ setActiveTab }) => {
 	const [conversations, setConversations] = useState<Conversation[]>([])
 	const [selectedId, setSelectedId] = useState(null)
 	const scrollContainerRef = useRef<HTMLDivElement | null>(null)
 	const [conversationsWithMarkers, setConversationsWithMarkers] = useState<Conversation[]>([])
+	const [isFetching, setIsFetching] = useState(true)
+	const [isEmpty, setIsEmpty] = useState(false)
 
 	useEffect(() => {
 		loadConversations()
@@ -24,60 +27,18 @@ const ConversationList: React.FC = () => {
 
 	useEffect(() => {
 		const sortedConversations = [...conversations].sort((a, b) => b.timestamp - a.timestamp) // Sort by timestamp if not already sorted
-		setConversationsWithMarkers(insertTimeMarkers(sortedConversations))
+		setConversationsWithMarkers(sortedConversations)
 	}, [conversations])
 
-	const getHeaderFromTimestamp = (timestamp: number) => {
-		const today = new Date()
-		const date = new Date(timestamp)
-
-		const diffTime = Math.abs(today.getTime() - date.getTime())
-		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-		if (diffDays === 1) {
-			return 'today'
-		}
-		if (diffDays === 2) {
-			return 'yesterday'
-		}
-		if (diffDays <= 7) {
-			return 'previous-7-days'
-		}
-		if (diffDays <= 30) {
-			return 'previous-30-days'
-		}
-
-		return date.toLocaleString(navigator.language, { month: 'long' })
-	}
-
-	const insertTimeMarkers = (conversations: Conversation[]) => {
-		let lastHeader = ''
-		const withMarkers: Conversation[] = []
-		conversations.forEach(convo => {
-			const currentHeader = getHeaderFromTimestamp(convo.timestamp)
-			if (currentHeader !== lastHeader) {
-				withMarkers.push({
-					id: '0',
-					userId: '0',
-					gid: 0,
-					messages: '',
-					model: '',
-					systemPrompt: '',
-					timestamp: 0,
-					marker: true,
-					title: currentHeader,
-				})
-				lastHeader = currentHeader
-			}
-			withMarkers.push(convo)
-		})
-		return withMarkers
-	}
-
 	const loadConversations = async () => {
+		setIsFetching(true)
 		ConversationService.loadRecentConversationsTitleOnly()
 			.then(conversations => {
 				setConversations(conversations)
+				if (conversations.length === 0) {
+					setIsEmpty(true)
+				}
+				setIsFetching(false)
 			})
 			.catch(error => {
 				console.error('Error loading conversations:', error)
@@ -121,36 +82,67 @@ const ConversationList: React.FC = () => {
 
 	const ConversationListItemMemo = React.memo(ConversationListItem)
 
+	const setSelectedConversationId = id => {
+		window.parent.postMessage(
+			{ pluginMessage: { type: 'set-value', name: 'active_conversation_id', value: id } },
+			'*'
+		)
+		setSelectedId(id)
+		setActiveTab('home')
+	}
+
+	const EmptyList = () => {
+		return (
+			<div className="flex flex-col gap-60">
+				<h1 className="text-2xl text-left text-mint400">Welcome 👋</h1>
+				<div>
+					<div className="text-sm text-rice400">You don’t have search history yet.</div>
+					<div className="text-sm text-rice400">
+						Go to{' '}
+						<span
+							onClick={() => setActiveTab('home')}
+							className="underline underline-offset-2 text-mint400 cursor-pointer"
+						>
+							Home
+						</span>{' '}
+						to start your first search.
+					</div>
+				</div>
+			</div>
+		)
+	}
+
+	if (isFetching) {
+		return (
+			<div className="flex justify-center items-center pt-10">
+				<Loader />
+			</div>
+		)
+	}
+
+	if (isEmpty) return <EmptyList />
+
 	return (
 		<div className="conversation-list-container">
+			<h1 className="text-2xl text-left text-mint400 mb-6">Recent</h1>
 			<div
 				id="conversation-list"
 				ref={scrollContainerRef}
 				className="flex-col flex-1 transition-opacity duration-500 -mr-2 pr-2 overflow-y-auto"
 			>
-				<div className="flex flex-col gap-2 pb-2 dark:text-gray-100 text-gray-800 text-sm">
+				<div className="flex flex-col">
 					<div className="relative overflow-x-hidden" style={{ height: 'auto', opacity: 1 }}>
 						<ol>
-							{conversationsWithMarkers.map((convo, index) => {
-								if ('marker' in convo) {
-									return (
-										<li key={`marker-${index}`} className="sticky top-0 z-[16]">
-											<h3 className="h-9 pb-2 pt-3 px-3 text-xs text-gray-500 font-medium text-ellipsis overflow-hidden bg-gray-50 dark:bg-gray-900">
-												{convo.title}
-											</h3>
-										</li>
-									)
-								} else {
-									return (
-										<ConversationListItemMemo
-											key={convo.id}
-											convo={convo}
-											isSelected={selectedId === convo.id}
-											loadConversations={loadConversations}
-											setSelectedId={setSelectedId}
-										/>
-									)
-								}
+							{conversationsWithMarkers.map(convo => {
+								return (
+									<ConversationListItemMemo
+										key={convo.id}
+										convo={convo}
+										isSelected={selectedId === convo.id}
+										loadConversations={loadConversations}
+										setSelectedConversationId={setSelectedConversationId}
+									/>
+								)
 							})}
 						</ol>
 					</div>

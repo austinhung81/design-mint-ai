@@ -22,7 +22,7 @@ function App() {
 				<Home setActiveTab={setActiveTab} />
 			</TabsContent>
 			<TabsContent value="history">
-				<ConversationList />
+				<ConversationList setActiveTab={setActiveTab} />
 			</TabsContent>
 			<TabsContent value="setting">
 				<Setting />
