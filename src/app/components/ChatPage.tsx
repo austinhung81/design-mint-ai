@@ -14,7 +14,7 @@ import ConversationService, { Conversation } from '../service/ConversationServic
 import { FileDataRef } from '../models/FileData'
 import { Loader } from '../../../components/ui/loader'
 import addIcon from '../assets/add.svg'
-import { predefinedMessages } from '../service/predefinedMessages'
+import { predefinedMessages } from '../service/PredefinedMessages'
 
 export interface User {
 	id: string | null
