@@ -13,7 +13,6 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
 	convo,
 	setSelectedConversationId,
 }) => {
-	console.log('ConversationListItem', convo)
 	const [isEditingTitle, setIsEditingTitle] = useState(false)
 
 	const selectConversation = () => {

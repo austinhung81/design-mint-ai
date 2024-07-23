@@ -85,8 +85,6 @@ class ConversationService {
 	}
 
 	static async addConversation(conversation: Conversation): Promise<void> {
-		console.log('conversation', conversation)
-		console.log('conversation.id', conversation.id)
 		const docRef = doc(conversationsCollection, conversation.id)
 		await setDoc(docRef, conversation)
 		let event: ConversationChangeEvent = {

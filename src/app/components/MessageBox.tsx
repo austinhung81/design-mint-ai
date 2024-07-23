@@ -256,7 +256,6 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 		}
 
 		const handleTextChange = () => {
-			console.log('handleTextChange', textAreaRef.current?.value)
 			setIsSubmitted(false)
 			setIsTextEmpty(textAreaRef.current?.value.trim() === '')
 			handleTextValueUpdated()

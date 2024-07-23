@@ -23,7 +23,6 @@ const Home = ({ setActiveTab }) => {
 				return
 			}
 			const userAPIKey = (apiKey ?? '') as string
-			console.log('activeConversationId', activeConversationId)
 			setApiKey(userAPIKey)
 			setComponentNames(componentNames as string[])
 			setActiveConversationId(activeConversationId as string)

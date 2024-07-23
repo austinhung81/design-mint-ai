@@ -195,7 +195,6 @@ const ChatPage = ({
 			systemPrompt: instructions,
 			messages: '[]',
 		}
-		console.log('Starting conversation:', conversation)
 		setConversation(conversation)
 		ConversationService.addConversation(conversation)
 	}
@@ -228,7 +227,6 @@ const ChatPage = ({
 			fileDataRef: fileDataRef,
 		}
 		const updatedMessages = [...messages, newMessage]
-		console.log('Updated messages:', updatedMessages)
 		if (callback) {
 			callback(updatedMessages)
 		}
@@ -238,7 +236,6 @@ const ChatPage = ({
 	}
 
 	function handleStreamedResponse(content: string, fileDataRef: FileDataRef[]) {
-		console.log('Handling streamed response:', content)
 		setMessages(prevMessages => {
 			let isNew: boolean = false
 			try {
