@@ -12,7 +12,6 @@ import { MAX_ROWS, SNIPPET_MARKERS } from '../constants/appConstants'
 import { SubmitButton } from './SubmitButton'
 import { ChatService } from '../service/ChatService'
 import { StopCircleIcon } from '@heroicons/react/24/outline'
-import Tooltip from '../../../components/ui/tooltip'
 import FileDataPreview from './FileDataPreview'
 import { FileDataRef } from '../models/FileData'
 import { preprocessImage } from '../../../lib/ImageUtils'
@@ -332,11 +331,9 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 							{/* Cancel/Submit Button */}
 							<div className="flex justify-end">
 								{loading ? (
-									<Tooltip title="cancel-output" side="top" sideOffset={0}>
-										<button onClick={e => handleCancel(e)} className="p-1">
-											<StopCircleIcon className="h-6 w-6" />
-										</button>
-									</Tooltip>
+									<button onClick={e => handleCancel(e)} className="p-1">
+										<StopCircleIcon className="h-6 w-6" />
+									</button>
 								) : (
 									<SubmitButton disabled={isTextEmpty || loading} loading={loading} />
 								)}

@@ -5,7 +5,11 @@ function getMainComponentNames() {
 	const mainComponents = figma.root.findAll(node => node.type === 'COMPONENT')
 	let componentNames = mainComponents.map(component => {
 		// Check if the component has a parent and the parent has a name
-		const parentName = component.parent && component.parent.name ? component.parent.name : ''
+		console.log('component.parent:', component.parent)
+		const parentName =
+			component.parent && component.parent.name && component.parent.type !== 'PAGE'
+				? component.parent.name
+				: component.name
 		return parentName
 	})
 

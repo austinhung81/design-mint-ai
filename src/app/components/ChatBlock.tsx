@@ -4,6 +4,7 @@ import { ChatMessage, MessageType } from '../models/ChatCompletion'
 import UserContentBlock from './UserContentBlock'
 import userIcon from '../assets/user.svg'
 import systemIcon from '../assets/system.svg'
+//import Markdown from 'react-markdown'
 
 interface Props {
 	block: ChatMessage
