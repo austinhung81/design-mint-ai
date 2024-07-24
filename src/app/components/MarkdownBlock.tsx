@@ -1,6 +1,4 @@
 import React from 'react'
-//import ReactMarkdown from 'react-markdown'
-//import rehypeSanitize from 'rehype-sanitize'
 import MarkdownIt from 'markdown-it'
 
 interface ChatBlockProps {
