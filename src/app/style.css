@@ -100,11 +100,11 @@
 	}
 	ol {
 		@apply list-decimal;
-		@apply pl-4;
+		@apply ml-8;
 	}
 	ul {
 		@apply list-disc;
-		@apply pl-4;
+		@apply ml-8;
 	}
 	code {
 		@apply font-mono;
