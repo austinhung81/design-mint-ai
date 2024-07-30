@@ -40,6 +40,38 @@ export function getProjectMainComponents() {
 	return promise
 }
 
+export function getProjectEditors() {
+	window.parent.postMessage({ pluginMessage: { type: 'get-editors' } }, '*')
+
+	const promise = new Promise(function (resolve) {
+		window.addEventListener(
+			'message',
+			function (event) {
+				resolve(event.data.pluginMessage.editors)
+			},
+			{ once: true }
+		)
+	})
+
+	return promise
+}
+
+export function getFrames() {
+	window.parent.postMessage({ pluginMessage: { type: 'find-frames-with-checkbox' } }, '*')
+
+	const promise = new Promise(function (resolve) {
+		window.addEventListener(
+			'message',
+			function (event) {
+				resolve(event.data.pluginMessage.frames)
+			},
+			{ once: true }
+		)
+	})
+
+	return promise
+}
+
 export function getUser() {
 	window.parent.postMessage({ pluginMessage: { type: 'get-user' } }, '*')
 

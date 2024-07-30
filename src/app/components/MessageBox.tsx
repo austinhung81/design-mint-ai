@@ -8,6 +8,15 @@ import React, {
 	useRef,
 	useState,
 } from 'react'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '../../../components/ui/select'
+//import { Calendar } from '../../../components/ui/calendar'
+//import { Popover, PopoverContent, PopoverTrigger } from '../../../components/ui/popover'
 import { MAX_ROWS, SNIPPET_MARKERS } from '../constants/appConstants'
 import { SubmitButton } from './SubmitButton'
 import { ChatService } from '../service/ChatService'
@@ -43,6 +52,9 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 		const resizeTimeoutRef = useRef<number | null>(null)
 		const [fileDataRef, setFileDataRef] = useState<FileDataRef[]>([])
 		const [isSubmitted, setIsSubmitted] = useState(false)
+		//const [selectedEditor, setSelectedEditor] = useState('')
+		const [selectedTime, setSelectedTime] = useState('')
+		//const [date, setDate] = useState(new Date())
 
 		const setTextValue = (value: string) => {
 			textValue.current = value
@@ -284,6 +296,37 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 			setFileDataRef(fileDataRef.filter((_, i) => i !== index))
 		}
 
+		/*const handleEditorChange = (value: string) => {
+			setSelectedEditor(`By: ${value}`)
+		}*/
+
+		const handleTimeChange = (value: string) => {
+			let displayValue
+			switch (value) {
+				case 'this-year':
+					displayValue = 'This year'
+					break
+				case '6-months':
+					displayValue = 'Last 6 months'
+					break
+				case 'last-month':
+					displayValue = 'Last month'
+					break
+				case 'last-week':
+					displayValue = 'Last week'
+					break
+				case 'all-time':
+					displayValue = 'All time'
+					break
+				case 'customise':
+					displayValue = 'Customise timeframe'
+					break
+				default:
+					displayValue = 'In: Time'
+			}
+			setSelectedTime(`In: ${displayValue}`)
+		}
+
 		return (
 			<div className="fix bottom-0 left-0 w-full bg-rice200 p-4">
 				<form
@@ -329,7 +372,23 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 							/>
 
 							{/* Cancel/Submit Button */}
-							<div className="flex justify-end">
+							<div className="flex justify-between">
+								<div>
+									<Select onValueChange={handleTimeChange}>
+										<SelectTrigger className="min-w-[120px] rounded-full">
+											<SelectValue placeholder="In: Time">{selectedTime}</SelectValue>
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="customise">Customise timeframe</SelectItem>
+											<SelectItem value="this-year">This year</SelectItem>
+											<SelectItem value="6-months">Last 6 months</SelectItem>
+											<SelectItem value="last-month">Last month</SelectItem>
+											<SelectItem value="last-week">Last week</SelectItem>
+											<SelectItem value="all-time">All time</SelectItem>
+											<SelectItem value="none"></SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
 								{loading ? (
 									<button onClick={e => handleCancel(e)} className="p-1">
 										<StopCircleIcon className="h-6 w-6" />

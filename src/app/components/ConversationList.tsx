@@ -132,7 +132,7 @@ const ConversationList = ({ setActiveTab }) => {
 			>
 				<div className="flex flex-col">
 					<div className="relative overflow-x-hidden" style={{ height: 'auto', opacity: 1 }}>
-						<ol>
+						<ol className="m-0">
 							{conversationsWithMarkers.map(convo => {
 								return (
 									<ConversationListItemMemo
