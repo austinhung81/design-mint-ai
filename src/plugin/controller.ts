@@ -24,9 +24,9 @@ async function findFramesWithCheckbox() {
 	const projectName = figma.root.name // Get the project name from the file name
 	const framesWithCheckbox = figma.root.findAll(node => {
 		if (node.type === 'FRAME') {
-			console.log('node:', node.name)
+			//console.log('node:', node.name)
 			const checkboxes = node.findAll(child => {
-				console.log('child:', child.name)
+				//console.log('child:', child.name)
 				return child.type === 'COMPONENT' && child.name === 'Checkbox'
 			})
 			return checkboxes.length > 0
@@ -34,20 +34,16 @@ async function findFramesWithCheckbox() {
 		return false
 	}) as FrameNode[] // Ensure the result is of type FrameNode[]
 
-	console.log('Frames with checkbox:', framesWithCheckbox)
-
 	const frameDetails = framesWithCheckbox.map(frame => ({
 		url: `https://www.figma.com/file/${figma.fileKey}/${projectName}?node-id=${frame.id}`,
 		node: frame,
 	}))
 
-	console.log('Frames with checkbox:', frameDetails)
-
-	// Clone and append frames to the current page
+	/* Clone and append frames to the current page
 	for (const frame of framesWithCheckbox) {
 		const clonedFrame = frame.clone()
 		figma.currentPage.appendChild(clonedFrame)
-	}
+	}*/
 
 	return frameDetails
 }

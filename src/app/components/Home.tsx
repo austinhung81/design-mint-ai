@@ -1,4 +1,4 @@
-import { getFigmaStorageValue, getProjectMainComponents, getFrames } from '../../../lib/utils'
+import { getFigmaStorageValue, getProjectMainComponents } from '../../../lib/utils'
 import React, { useEffect, useState } from 'react'
 import ChatPage from './ChatPage'
 import { Loader } from '../../../components/ui/loader'
@@ -16,8 +16,8 @@ const Home = ({ setActiveTab }) => {
 			const openaiModel = await getFigmaStorageValue('openai_model')
 			const activeConversationId = await getFigmaStorageValue('active_conversation_id')
 			const componentNames = await getProjectMainComponents()
-			const frames = await getFrames()
-			console.log('frames:', frames)
+			//const frames = await getFrames()
+
 			if (!apiKey || !openaiModel) {
 				setApiKey(null)
 				setIsFetching(false)

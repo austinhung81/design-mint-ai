@@ -15,6 +15,7 @@ import { FileDataRef } from '../models/FileData'
 import { Loader } from '../../../components/ui/loader'
 import addIcon from '../assets/add.svg'
 import { predefinedMessages } from '../service/PredefinedMessages'
+import { getFrames } from '../../../lib/utils'
 
 export interface User {
 	id: string | null
@@ -48,13 +49,14 @@ const ChatPage = ({
 	const messageBoxRef = useRef<MessageBoxHandles>(null)
 	const [isLoading, setIsLoading] = useState(false)
 	const [userId, setUserId] = useState(null)
-
+	const [frames, setFrames] = useState(null)
 	useEffect(() => {
 		async function fetchStorageValues() {
 			setIsLoading(true)
 			const openaiModel = await getFigmaStorageValue('openai_model')
 			const user = (await getUser()) as User
 			const key = (openaiModel ?? '') as string
+			const frames = getFrames()
 			fetchModelById(key)
 				.then(async (model: OpenAIModel | null) => {
 					setModel(model)
@@ -64,6 +66,7 @@ const ChatPage = ({
 				})
 				.finally(() => setIsLoading(false))
 			setUserId(user?.id)
+			setFrames(frames)
 		}
 		fetchStorageValues()
 	}, [])
@@ -227,6 +230,7 @@ const ChatPage = ({
 			fileDataRef: fileDataRef,
 		}
 		const updatedMessages = [...messages, newMessage]
+		console.log('updatedMessages', updatedMessages)
 		if (callback) {
 			callback(updatedMessages)
 		}
@@ -236,6 +240,7 @@ const ChatPage = ({
 	}
 
 	function handleStreamedResponse(content: string, fileDataRef: FileDataRef[]) {
+		console.log('handleStreamedResponse', frames)
 		setMessages(prevMessages => {
 			let isNew: boolean = false
 			try {
@@ -266,9 +271,9 @@ const ChatPage = ({
 				// Clone the last message and update its content
 				const updatedMessage = {
 					...prevMessages[prevMessages.length - 1],
-					content: prevMessages[prevMessages.length - 1].content + content,
+					//content: prevMessages[prevMessages.length - 1].content + content,
+					content: 'Here are the links of the designs',
 				}
-
 				// Replace the old last message with the updated one
 				return [...prevMessages.slice(0, -1), updatedMessage]
 			}

@@ -379,13 +379,11 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 											<SelectValue placeholder="In: Time">{selectedTime}</SelectValue>
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value="customise">Customise timeframe</SelectItem>
 											<SelectItem value="this-year">This year</SelectItem>
 											<SelectItem value="6-months">Last 6 months</SelectItem>
 											<SelectItem value="last-month">Last month</SelectItem>
 											<SelectItem value="last-week">Last week</SelectItem>
 											<SelectItem value="all-time">All time</SelectItem>
-											<SelectItem value="none"></SelectItem>
 										</SelectContent>
 									</Select>
 								</div>
