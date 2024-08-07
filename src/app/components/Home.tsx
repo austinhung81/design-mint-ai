@@ -17,7 +17,7 @@ const Home = ({ setActiveTab }) => {
 			const activeConversationId = await getFigmaStorageValue('active_conversation_id')
 			const componentNames = await getProjectMainComponents()
 			//const frames = await getFrames()
-
+			console.log('apiKey', apiKey)
 			if (!apiKey || !openaiModel) {
 				setApiKey(null)
 				setIsFetching(false)

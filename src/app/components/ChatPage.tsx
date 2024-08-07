@@ -54,9 +54,10 @@ const ChatPage = ({
 		async function fetchStorageValues() {
 			setIsLoading(true)
 			const openaiModel = await getFigmaStorageValue('openai_model')
+			console.log('openaiModel', openaiModel)
 			const user = (await getUser()) as User
 			const key = (openaiModel ?? '') as string
-			const frames = getFrames()
+			const frames = await getFrames()
 			fetchModelById(key)
 				.then(async (model: OpenAIModel | null) => {
 					setModel(model)
