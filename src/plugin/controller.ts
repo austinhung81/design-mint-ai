@@ -19,23 +19,23 @@ function getMainComponentNames() {
 	return componentNames
 }
 
-async function findFramesWithCheckbox() {
-	console.log('figma', figma)
+async function findFrames(keywords: string[]) {
 	const projectName = figma.root.name // Get the project name from the file name
-	const framesWithCheckbox = figma.root.findAll(node => {
+	const frameNodes = figma.root.findAll(node => {
 		if (node.type === 'FRAME') {
-			//console.log('node:', node.name)
-			const checkboxes = node.findAll(child => {
-				//console.log('child:', child.name)
-				return child.type === 'COMPONENT' && child.name === 'Checkbox'
+			const frames = node.findAll(child => {
+				return (
+					(child.type === 'COMPONENT' || child.type === 'INSTANCE') && child.name === keywords[0]
+				)
 			})
-			return checkboxes.length > 0
+			return frames.length > 0
 		}
 		return false
 	}) as FrameNode[] // Ensure the result is of type FrameNode[]
 
-	const frameDetails = framesWithCheckbox.map(frame => ({
+	const frameDetails = frameNodes.map(frame => ({
 		url: `https://www.figma.com/file/${figma.fileKey}/${projectName}?node-id=${frame.id}`,
+		name: frame.name,
 		node: frame,
 	}))
 
@@ -60,9 +60,9 @@ figma.ui.onmessage = async msg => {
 			figma.ui.postMessage({ type: 'main-component-names', names: componentNames })
 		} else if (msg.type === 'get-user') {
 			figma.ui.postMessage({ type: 'user', user: figma.currentUser })
-		} else if (msg.type === 'find-frames-with-checkbox') {
-			const frames = await findFramesWithCheckbox()
-			figma.ui.postMessage({ type: 'frames-with-checkbox', frames: frames })
+		} else if (msg.type === 'find-frames') {
+			const frames = await findFrames(msg.keywords)
+			figma.ui.postMessage({ type: 'frames', frames: frames })
 		}
 	} catch (error) {
 		console.error('Error processing message:', msg, error)

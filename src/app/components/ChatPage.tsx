@@ -3,7 +3,7 @@ import { getFigmaStorageValue, getUser } from '../../../lib/utils'
 import { ChatService } from '../service/ChatService'
 import { ChatMessage, MessageType, Role } from '../models/ChatCompletion'
 import { CustomError } from '../service/CustomError'
-import { DEFAULT_MODEL, SNIPPET_MARKERS } from '../constants/appConstants'
+import { DEFAULT_MODEL } from '../constants/appConstants'
 import Chat from './Chat'
 import MessageBox, { MessageBoxHandles } from './MessageBox'
 import { NotificationService } from '../service/NotificationService'
@@ -45,7 +45,7 @@ const ChatPage = ({
 	const [messages, setMessages] = useState<ChatMessage[]>([])
 	const [loading, setLoading] = useState(false)
 	const [allowAutoScroll, setAllowAutoScroll] = useState(true)
-	const buttonRef = useRef<HTMLButtonElement | null>(null)
+	//const buttonRef = useRef<HTMLButtonElement | null>(null)
 	const messageBoxRef = useRef<MessageBoxHandles>(null)
 	const [isLoading, setIsLoading] = useState(false)
 	const [userId, setUserId] = useState(null)
@@ -54,10 +54,9 @@ const ChatPage = ({
 		async function fetchStorageValues() {
 			setIsLoading(true)
 			const openaiModel = await getFigmaStorageValue('openai_model')
-			console.log('openaiModel', openaiModel)
 			const user = (await getUser()) as User
 			const key = (openaiModel ?? '') as string
-			const frames = await getFrames()
+			const frames = await getFrames(['Card 3'])
 			fetchModelById(key)
 				.then(async (model: OpenAIModel | null) => {
 					setModel(model)
@@ -131,7 +130,7 @@ const ChatPage = ({
 		})
 	}
 
-	const handleQuoteSelectedText = () => {
+	/*const handleQuoteSelectedText = () => {
 		const selection = window.getSelection()
 		if (selection) {
 			const selectedText = selection.toString()
@@ -139,7 +138,7 @@ const ChatPage = ({
 			messageBoxRef.current?.pasteText(modifiedText)
 			messageBoxRef.current?.focusTextarea()
 		}
-	}
+	}*/
 
 	const handleUserScroll = (isAtBottom: boolean) => {
 		setAllowAutoScroll(isAtBottom)
@@ -269,11 +268,12 @@ const ChatPage = ({
 				}
 				return [...prevMessages, message]
 			} else {
+				const frameNames = frames.map((frame, index) => `${index + 1}. ${frame.name}`).join('\n')
 				// Clone the last message and update its content
 				const updatedMessage = {
 					...prevMessages[prevMessages.length - 1],
 					//content: prevMessages[prevMessages.length - 1].content + content,
-					content: 'Here are the links of the designs',
+					content: `Here are the files of the designs:\n${frameNames}`,
 				}
 				// Replace the old last message with the updated one
 				return [...prevMessages.slice(0, -1), updatedMessage]
@@ -321,7 +321,7 @@ const ChatPage = ({
 		addMessage(Role.User, MessageType.Normal, message, fileDataRef, sendMessage)
 	}
 
-	const createButton = () => {
+	/*const createButton = () => {
 		const button = document.createElement('button')
 		button.className =
 			'px-2 py-1 bg-gray-100 text-black dark:text-black dark:bg-gray-200 border border-gray-200 dark:border-gray-800 rounded-md shadow-md hover:bg-gray-200 dark:hover:bg-gray-100 focus:outline-none'
@@ -369,7 +369,7 @@ const ChatPage = ({
 				buttonRef.current = newButton
 			}
 		}
-	}
+	}*/
 	if (isLoading) {
 		return (
 			<div className="flex justify-center items-center pt-10">
@@ -408,10 +408,7 @@ const ChatPage = ({
 					className={`${className} overflow-hidden w-full h-full relative flex z-0 dark:bg-gray-900`}
 				>
 					<div className="flex flex-col items-stretch w-full h-full">
-						<main
-							className="relative h-full transition-width flex flex-col overflow-hidden items-stretch flex-1"
-							onMouseUp={handleMouseUp}
-						>
+						<main className="relative h-full transition-width flex flex-col overflow-hidden items-stretch flex-1">
 							{conversation ? (
 								<Chat
 									chatBlocks={messages}

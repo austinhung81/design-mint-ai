@@ -56,8 +56,8 @@ export function getProjectEditors() {
 	return promise
 }
 
-export function getFrames() {
-	window.parent.postMessage({ pluginMessage: { type: 'find-frames-with-checkbox' } }, '*')
+export function getFrames(keywords: string[]) {
+	window.parent.postMessage({ pluginMessage: { type: 'find-frames', keywords } }, '*')
 
 	const promise = new Promise(function (resolve) {
 		window.addEventListener(
