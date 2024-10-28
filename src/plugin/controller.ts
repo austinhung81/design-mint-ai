@@ -1,5 +1,14 @@
 figma.showUI(__html__, { width: 600, height: 700, title: 'Mint AI' })
 
+/* Handle postMessage from backend (optional)
+window.onmessage = event => {
+	if (event.data.pluginMessage) {
+		const token = event.data.pluginMessage
+		// Store the token and use it for future API requests
+		console.log('OAuth token:', token)
+	}
+}*/
+
 function getMainComponentNames() {
 	const mainComponents = figma.root.findAll(node => node.type === 'COMPONENT')
 	let componentNames = mainComponents.map(component => {
@@ -32,7 +41,9 @@ async function findFrames(keywords: string[]) {
 		}
 		return false
 	}) as FrameNode[] // Ensure the result is of type FrameNode[]
-
+	console.log('figma', figma)
+	console.log('figma.fileKey', figma.fileKey)
+	console.log('figma.currentUser', figma.currentUser)
 	const frameDetails = frameNodes.map(frame => ({
 		url: `https://www.figma.com/file/${figma.fileKey}/${projectName}?node-id=${frame.id}`,
 		name: frame.name,

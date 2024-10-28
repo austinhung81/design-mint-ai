@@ -1,55 +1,217 @@
-'use client'
+import { useState, useEffect } from 'react'
+import {
+	format,
+	subMonths,
+	addMonths,
+	subYears,
+	addYears,
+	isEqual,
+	getDaysInMonth,
+	getDay,
+} from 'date-fns'
+import React from 'react'
 
-import * as React from 'react'
-//import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { DayPicker } from 'react-day-picker'
+type DatepickerType = 'date' | 'month' | 'year'
 
-import { cn } from '../../lib/utils'
-import { buttonVariants } from './button'
+function Calendar() {
+	const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+	const [dayCount, setDayCount] = useState<Array<number>>([])
+	const [blankDays, setBlankDays] = useState<Array<number>>([])
+	const [showDatepicker, setShowDatepicker] = useState(false)
+	const [datepickerHeaderDate, setDatepickerHeaderDate] = useState(new Date())
+	const [selectedDate, setSelectedDate] = useState(new Date())
+	const [type, setType] = useState<DatepickerType>('date')
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>
+	const decrement = () => {
+		switch (type) {
+			case 'date':
+				setDatepickerHeaderDate(prev => subMonths(prev, 1))
+				break
+			case 'month':
+				setDatepickerHeaderDate(prev => subYears(prev, 1))
+				break
+			case 'year':
+				setDatepickerHeaderDate(prev => subMonths(prev, 1))
+				break
+		}
+	}
 
-function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
+	const increment = () => {
+		switch (type) {
+			case 'date':
+				setDatepickerHeaderDate(prev => addMonths(prev, 1))
+				break
+			case 'month':
+				setDatepickerHeaderDate(prev => addYears(prev, 1))
+				break
+			case 'year':
+				setDatepickerHeaderDate(prev => subMonths(prev, 1))
+				break
+		}
+	}
+
+	const isToday = (date: number) =>
+		isEqual(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), date), selectedDate)
+
+	const setDateValue = (date: number) => () => {
+		setSelectedDate(
+			new Date(datepickerHeaderDate.getFullYear(), datepickerHeaderDate.getMonth(), date)
+		)
+		setShowDatepicker(false)
+	}
+
+	const getDayCount = (date: Date) => {
+		let daysInMonth = getDaysInMonth(date)
+
+		// find where to start calendar day of week
+		let dayOfWeek = getDay(new Date(date.getFullYear(), date.getMonth(), 1))
+		let blankdaysArray = []
+		for (let i = 1; i <= dayOfWeek; i++) {
+			blankdaysArray.push(i)
+		}
+
+		let daysArray = []
+		for (let i = 1; i <= daysInMonth; i++) {
+			daysArray.push(i)
+		}
+
+		setBlankDays(blankdaysArray)
+		setDayCount(daysArray)
+	}
+
+	const isSelectedMonth = (month: number) =>
+		isEqual(new Date(selectedDate.getFullYear(), month, selectedDate.getDate()), selectedDate)
+
+	const setMonthValue = (month: number) => () => {
+		setDatepickerHeaderDate(
+			new Date(datepickerHeaderDate.getFullYear(), month, datepickerHeaderDate.getDate())
+		)
+		setType('date')
+	}
+
+	const toggleDatepicker = () => setShowDatepicker(prev => !prev)
+
+	const showMonthPicker = () => setType('month')
+
+	const showYearPicker = () => setType('date')
+
+	useEffect(() => {
+		getDayCount(datepickerHeaderDate)
+	}, [datepickerHeaderDate])
+
 	return (
-		<DayPicker
-			showOutsideDays={showOutsideDays}
-			className={cn('p-3', className)}
-			classNames={{
-				months: 'flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0',
-				month: 'space-y-4',
-				caption: 'flex justify-center pt-1 relative items-center',
-				caption_label: 'text-sm font-medium',
-				nav: 'space-x-1 flex items-center',
-				nav_button: cn(
-					buttonVariants({ variant: 'outline' }),
-					'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100'
-				),
-				nav_button_previous: 'absolute left-1',
-				nav_button_next: 'absolute right-1',
-				table: 'w-full border-collapse space-y-1',
-				head_row: 'flex',
-				head_cell: 'text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]',
-				row: 'flex w-full mt-2',
-				cell: 'h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
-				day: cn(
-					buttonVariants({ variant: 'ghost' }),
-					'h-9 w-9 p-0 font-normal aria-selected:opacity-100'
-				),
-				day_range_end: 'day-range-end',
-				day_selected:
-					'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground',
-				day_today: 'bg-accent text-accent-foreground',
-				day_outside:
-					'day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30',
-				day_disabled: 'text-muted-foreground opacity-50',
-				day_range_middle: 'aria-selected:bg-accent aria-selected:text-accent-foreground',
-				day_hidden: 'invisible',
-				...classNames,
-			}}
-			{...props}
-		/>
+		<div className="bg-white">
+			<div className="flex justify-between items-center mb-2">
+				<div>
+					<button
+						type="button"
+						className="transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 rounded-full"
+						onClick={decrement}
+					>
+						<svg
+							className="h-6 w-6 text-gray-500 inline-flex"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M15 19l-7-7 7-7"
+							/>
+						</svg>
+					</button>
+				</div>
+				{type === 'date' && (
+					<div
+						onClick={showMonthPicker}
+						className="flex-grow p-1 text-lg font-bold text-gray-800 cursor-pointer hover:bg-gray-200 rounded-lg"
+					>
+						<p className="text-center">{format(datepickerHeaderDate, 'MMMM')}</p>
+					</div>
+				)}
+				<div
+					onClick={showYearPicker}
+					className="flex-grow p-1 text-lg font-bold text-gray-800 cursor-pointer hover:bg-gray-200 rounded-lg"
+				>
+					<p className="text-center">{format(datepickerHeaderDate, 'yyyy')}</p>
+				</div>
+				<div>
+					<button
+						type="button"
+						className="transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 rounded-full"
+						onClick={increment}
+					>
+						<svg
+							className="h-6 w-6 text-gray-500 inline-flex"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+						</svg>
+					</button>
+				</div>
+			</div>
+			{type === 'date' && (
+				<>
+					<div className="flex flex-wrap mb-3 -mx-1">
+						{DAYS.map((day, i) => (
+							<div key={i} style={{ width: '14.26%' }} className="px-1">
+								<div className="text-gray-800 font-medium text-center text-xs">{day}</div>
+							</div>
+						))}
+					</div>
+					<div className="flex flex-wrap -mx-1">
+						{blankDays.map((_, i) => (
+							<div
+								key={i}
+								style={{ width: '14.26%' }}
+								className="text-center border p-1 border-transparent text-sm"
+							></div>
+						))}
+						{dayCount.map((d, i) => (
+							<div key={i} style={{ width: '14.26%' }} className="px-1 mb-1">
+								<div
+									onClick={setDateValue(d)}
+									className={`cursor-pointer text-center text-sm leading-none rounded-full leading-loose transition ease-in-out duration-100 ${
+										isToday(d) ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-blue-200'
+									}`}
+								>
+									{d}
+								</div>
+							</div>
+						))}
+					</div>
+				</>
+			)}
+			{type === 'month' && (
+				<div className="flex flex-wrap -mx-1">
+					{Array(12)
+						.fill(null)
+						.map((_, i) => (
+							<div key={i} onClick={setMonthValue(i)} style={{ width: '25%' }}>
+								<div
+									className={`cursor-pointer p-5 font-semibold text-center text-sm rounded-lg hover:bg-gray-200 ${
+										isSelectedMonth(i)
+											? 'bg-blue-500 text-white'
+											: 'text-gray-700 hover:bg-blue-200'
+									}`}
+								>
+									{format(
+										new Date(datepickerHeaderDate.getFullYear(), i, datepickerHeaderDate.getDate()),
+										'MMM'
+									)}
+								</div>
+							</div>
+						))}
+				</div>
+			)}{' '}
+		</div>
 	)
 }
+
 Calendar.displayName = 'Calendar'
 
 export { Calendar }

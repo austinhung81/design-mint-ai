@@ -15,8 +15,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '../../../components/ui/select'
-//import { Calendar } from '../../../components/ui/calendar'
-//import { Popover, PopoverContent, PopoverTrigger } from '../../../components/ui/popover'
+import { Calendar } from '../../../components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '../../../components/ui/popover'
 import { MAX_ROWS, SNIPPET_MARKERS } from '../constants/appConstants'
 import { SubmitButton } from './SubmitButton'
 import { ChatService } from '../service/ChatService'
@@ -25,6 +25,7 @@ import FileDataPreview from './FileDataPreview'
 import { FileDataRef } from '../models/FileData'
 import { preprocessImage } from '../../../lib/ImageUtils'
 import MessageTextarea from './MessageTextarea'
+import EditorsDropdown from './EditorsDropdown'
 
 interface MessageBoxProps {
 	callApp: Function
@@ -55,6 +56,8 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 		//const [selectedEditor, setSelectedEditor] = useState('')
 		const [selectedTime, setSelectedTime] = useState('')
 		//const [date, setDate] = useState(new Date())
+		const [showCalendar, setShowCalendar] = useState(false)
+		const [isSelectOpen, setIsSelectOpen] = useState(false)
 
 		const setTextValue = (value: string) => {
 			textValue.current = value
@@ -327,6 +330,23 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 			setSelectedTime(`In: ${displayValue}`)
 		}
 
+		const handleSelectChange = value => {
+			handleTimeChange(value)
+			if (value === 'customise') {
+				setShowCalendar(true)
+				setIsSelectOpen(true)
+			} else {
+				setShowCalendar(false)
+				setIsSelectOpen(false)
+			}
+		}
+
+		const handleOpenChange = open => {
+			if (!showCalendar) {
+				setIsSelectOpen(open)
+			}
+		}
+
 		return (
 			<div className="fix bottom-0 left-0 w-full bg-rice200 p-4">
 				<form
@@ -373,20 +393,39 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 
 							{/* Cancel/Submit Button */}
 							<div className="flex justify-between">
-								<div>
-									<Select onValueChange={handleTimeChange}>
-										<SelectTrigger className="min-w-[120px] rounded-full">
-											<SelectValue placeholder="In: Time">{selectedTime}</SelectValue>
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="this-year">This year</SelectItem>
-											<SelectItem value="6-months">Last 6 months</SelectItem>
-											<SelectItem value="last-month">Last month</SelectItem>
-											<SelectItem value="last-week">Last week</SelectItem>
-											<SelectItem value="all-time">All time</SelectItem>
-										</SelectContent>
-									</Select>
+								<div className="flex gap-2">
+									<div>
+										<EditorsDropdown />
+									</div>
+									<div className="relative">
+										<Select
+											open={isSelectOpen}
+											onValueChange={handleSelectChange}
+											onOpenChange={handleOpenChange}
+										>
+											<SelectTrigger className="min-w-[120px] rounded-full">
+												<SelectValue placeholder="In: Time">{selectedTime}</SelectValue>
+											</SelectTrigger>
+											<SelectContent>
+												{showCalendar ? (
+													<div className="max-w-52">
+														<Calendar />
+													</div>
+												) : (
+													<>
+														<SelectItem value="customise">Customise timeframe</SelectItem>
+														<SelectItem value="this-year">This year</SelectItem>
+														<SelectItem value="6-months">Last 6 months</SelectItem>
+														<SelectItem value="last-month">Last month</SelectItem>
+														<SelectItem value="last-week">Last week</SelectItem>
+														<SelectItem value="all-time">All time</SelectItem>
+													</>
+												)}
+											</SelectContent>
+										</Select>
+									</div>
 								</div>
+
 								{loading ? (
 									<button onClick={e => handleCancel(e)} className="p-1">
 										<StopCircleIcon className="h-6 w-6" />

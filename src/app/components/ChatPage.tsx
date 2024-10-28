@@ -268,7 +268,9 @@ const ChatPage = ({
 				}
 				return [...prevMessages, message]
 			} else {
-				const frameNames = frames.map((frame, index) => `${index + 1}. ${frame.name}`).join('\n')
+				const frameNames = frames
+					.map((frame, index) => `${index + 1}. ${frame.name}, ${frame.url}`)
+					.join('\n')
 				// Clone the last message and update its content
 				const updatedMessage = {
 					...prevMessages[prevMessages.length - 1],

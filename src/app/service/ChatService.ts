@@ -88,11 +88,19 @@ export class ChatService {
 			model: modelId,
 			messages: mappedMessages,
 		}
-		const response = await fetch(endpoint, {
+		/*const response = await fetch(endpoint, {
+			method: 'POST',
+			headers: headers,
+			body: JSON.stringify(requestBody),
+		})*/
+		console.log('requestBody', requestBody)
+		const response = await fetch('http://river-on-tips.xyz:5000/generate', {
 			method: 'POST',
 			headers: headers,
 			body: JSON.stringify(requestBody),
 		})
+
+		console.log('response', response.json())
 
 		if (!response.ok) {
 			const err = await response.json()
@@ -143,7 +151,7 @@ export class ChatService {
 		let endpoint = CHAT_COMPLETIONS_ENDPOINT
 		let headers = {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${OPENAI_API_KEY}`,
+			//Authorization: `Bearer ${OPENAI_API_KEY}`,
 		}
 
 		const requestBody: ChatCompletionRequest = {
@@ -171,12 +179,21 @@ export class ChatService {
 
 		let response: Response
 		try {
-			response = await fetch(endpoint, {
+			console.log('requestBody', requestBody)
+			response = await fetch('https://river-on-tips.xyz/generate', {
+				method: 'POST',
+				mode: 'no-cors',
+				headers: headers,
+				body: JSON.stringify({ prompt: requestBody?.messages[1]?.content[0]?.text }),
+			})
+
+			console.log('response', response.json())
+			/*response = await fetch(endpoint, {
 				method: 'POST',
 				headers: headers,
 				body: JSON.stringify(requestBody),
 				signal: this.abortController.signal,
-			})
+			})*/
 		} catch (error) {
 			if (error instanceof Error && error.name === 'AbortError') {
 				NotificationService.handleUnexpectedError(error, 'Stream reading was aborted.')

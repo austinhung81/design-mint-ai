@@ -32,6 +32,23 @@ const Setting = () => {
 		setOpenAiModel(key)
 	}
 
+	/*// Fetch the files from Figma API
+	const fetchFiles = async token => {
+		try {
+			const response = await fetch('https://api.figma.com/v1/files', {
+				headers: {
+					Authorization: `Bearer ${'figu_mjXUZE759W2Bemt7_XvKx1JjZSj9VTmsql-4im36'}`,
+				},
+			})
+			const data = await response.json()
+			if (data.files) {
+				setFiles(data.files) // Set the fetched files to state
+			}
+		} catch (error) {
+			console.error('Error fetching files:', error)
+		}
+	}*/
+
 	useEffect(() => {
 		async function fetchStorageValues() {
 			const apiKey = await getFigmaStorageValue('openai_api_key')
@@ -48,10 +65,64 @@ const Setting = () => {
 		}
 
 		fetchStorageValues()
+		/*
+		const handleMessage = event => {
+			if (event.origin !== 'http://54.199.221.121:8000') {
+				console.warn('Origin mismatch:', event.origin)
+				return
+			}
+
+			const accessToken = event.data.accessToken || 'figu_mjXUZE759W2Bemt7_XvKx1JjZSj9VTmsql-4im36'
+			if (accessToken) {
+				setAccessToken(accessToken)
+				window.parent.postMessage(
+					{ pluginMessage: { type: 'set-value', name: 'figma_access_token', value: accessToken } },
+					'*'
+				)
+				fetchFiles(accessToken) // Fetch files after receiving the access token
+			} else {
+				console.error('No access token received')
+			}
+		}
+
+		window.addEventListener('message', handleMessage)
+
+		window.parent.postMessage(
+			{
+				pluginMessage: {
+					type: 'set-value',
+					name: 'figma_access_token',
+					value: 'figu_mjXUZE759W2Bemt7_XvKx1JjZSj9VTmsql-4im36',
+				},
+			},
+			'*'
+		)
+
+		fetchFiles('figu_mjXUZE759W2Bemt7_XvKx1JjZSj9VTmsql-4im36')
+
+		return () => {
+			window.removeEventListener('message', handleMessage)
+		}*/
 	}, [])
+
+	// Handle OAuth button click
+	/*const handleOauth = () => {
+		window.open('http://54.199.221.121:8000/auth')
+	}
+
+	// Handle file selection from the dropdown
+	const handleFileSelect = fileId => {
+		setSelectedFile(fileId)
+		console.log('Selected file ID:', fileId)
+		window.parent.postMessage(
+			{ pluginMessage: { type: 'set-value', name: 'selected_file_id', value: fileId } },
+			'*'
+		)
+	}*/
 
 	return (
 		<div className="w-full flex flex-col gap-6">
+			{/* API Key Input */}
 			<div className="flex flex-col justify-start items-start gap-2">
 				<label htmlFor="model" className="block text-sm text-rice500 text-left w-full">
 					<div className="flex items-center justify-between">
@@ -73,11 +144,13 @@ const Setting = () => {
 					id="apiKey"
 				/>
 			</div>
+
+			{/* Model Selection Dropdown */}
 			<div className="flex flex-col justify-start items-start gap-2">
 				<label htmlFor="model" className="block text-sm text-rice500 text-left">
 					Model
 				</label>
-				<Select value={openAiModel} onValueChange={value => handleOpenAiModelChange(value)}>
+				<Select value={openAiModel} onValueChange={handleOpenAiModelChange}>
 					<SelectTrigger className="w-full">
 						<SelectValue placeholder="Select a model" />
 					</SelectTrigger>
