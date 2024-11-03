@@ -32,21 +32,16 @@ async function findFrames(keywords: string[]) {
 	const projectName = figma.root.name.replace(/ /g, '-') // Replace spaces with hyphens
 	const frameNodes = figma.root.findAll(node => {
 		if (node.type === 'FRAME' && node.parent.type === 'PAGE') {
-			console.log('node:', node)
 			const hasMatchingChild = node.findAll(child => {
 				return (
 					(child.type === 'COMPONENT' || child.type === 'INSTANCE') &&
 					keywords.some(keyword => child.name.includes(keyword) && child.visible)
 				)
 			})
-			console.log('hasMatchingChild:', hasMatchingChild)
 			return hasMatchingChild.length > 0
 		}
 		return false
 	}) as FrameNode[] // Ensure the result is of type FrameNode[]
-	console.log('figma', figma)
-	console.log('figma.fileKey', figma.fileKey)
-	console.log('figma.currentUser', figma.currentUser)
 
 	const frameDetails = await Promise.all(
 		frameNodes.map(async frame => {
@@ -56,7 +51,6 @@ async function findFrames(keywords: string[]) {
 				constraint: { type: 'SCALE', value: 2 },
 			})
 			const previewUrl = `data:image/png;base64,${figma.base64Encode(preview)}`
-			console.log('figma.previewUrl', previewUrl)
 			return {
 				url: `https://www.figma.com/design/${figma.fileKey}/${projectName}?node-id=${nodeId}`,
 				name: frame.name,
@@ -85,7 +79,6 @@ figma.ui.onmessage = async msg => {
 			const frames = await findFrames(msg.keywords)
 			figma.ui.postMessage({ type: 'frames', frames: frames })
 		} else if (msg.type === 'navigate-to-node') {
-			console.log('Navigating to node:', msg.nodeId)
 			const node = figma.getNodeById(msg.nodeId) as SceneNode
 			if (node) {
 				figma.viewport.scrollAndZoomIntoView([node])
