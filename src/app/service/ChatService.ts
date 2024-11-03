@@ -14,7 +14,7 @@ import { CHAT_STREAM_DEBOUNCE_TIME, DEFAULT_MODEL } from '../constants/appConsta
 import { NotificationService } from '../service/NotificationService'
 import { FileDataRef } from '../models/FileData'
 
-interface CompletionChunk {
+/*interface CompletionChunk {
 	id: string
 	object: string
 	created: number
@@ -28,7 +28,7 @@ interface CompletionChunkChoice {
 		content: string
 	}
 	finish_reason: null | string // If there can be other values than 'null', use appropriate type instead of string.
-}
+}*/
 
 export class ChatService {
 	private static models: Promise<OpenAIModel[]> | null = null
@@ -88,19 +88,11 @@ export class ChatService {
 			model: modelId,
 			messages: mappedMessages,
 		}
-		/*const response = await fetch(endpoint, {
-			method: 'POST',
-			headers: headers,
-			body: JSON.stringify(requestBody),
-		})*/
-		console.log('requestBody', requestBody)
-		const response = await fetch('http://river-on-tips.xyz:5000/generate', {
+		const response = await fetch(endpoint, {
 			method: 'POST',
 			headers: headers,
 			body: JSON.stringify(requestBody),
 		})
-
-		console.log('response', response.json())
 
 		if (!response.ok) {
 			const err = await response.json()
@@ -115,10 +107,10 @@ export class ChatService {
 	private static accumulatedContent: string = '' // To accumulate content between debounced calls
 
 	static debounceCallback(
-		callback: (content: string, fileDataRef: FileDataRef[]) => void,
+		callback: (content: string, fileDataRef: FileDataRef[], keywords: string[]) => void,
 		delay: number = CHAT_STREAM_DEBOUNCE_TIME
 	) {
-		return (content: string) => {
+		return (content: string, fileDataRef: FileDataRef[], keywords: string[]) => {
 			this.accumulatedContent += content // Accumulate content on each call
 			const now = Date.now()
 			const timeSinceLastCall = now - this.lastCallbackTime
@@ -129,7 +121,7 @@ export class ChatService {
 
 			this.callDeferred = window.setTimeout(
 				() => {
-					callback(this.accumulatedContent, []) // Pass the accumulated content to the original callback
+					callback(this.accumulatedContent, fileDataRef, keywords) // Pass the accumulated content to the original callback
 					this.lastCallbackTime = Date.now()
 					this.accumulatedContent = '' // Reset the accumulated content after the callback is called
 				},
@@ -143,16 +135,16 @@ export class ChatService {
 	static async sendMessageStreamed(
 		chatSettings: ChatSettings,
 		messages: ChatMessage[],
-		callback: (content: string, fileDataRef: FileDataRef[]) => void
+		callback: (content: string, fileDataRef: FileDataRef[], keywords: string[]) => void
 	): Promise<any> {
 		const debouncedCallback = this.debounceCallback(callback)
-		const OPENAI_API_KEY = await fetchStorageAPIKey()
+		//const OPENAI_API_KEY = await fetchStorageAPIKey()
 		this.abortController = new AbortController()
-		let endpoint = CHAT_COMPLETIONS_ENDPOINT
+		/*let endpoint = CHAT_COMPLETIONS_ENDPOINT
 		let headers = {
 			'Content-Type': 'application/json',
-			//Authorization: `Bearer ${OPENAI_API_KEY}`,
-		}
+			Authorization: `Bearer ${OPENAI_API_KEY}`,
+		}*/
 
 		const requestBody: ChatCompletionRequest = {
 			model: DEFAULT_MODEL,
@@ -179,21 +171,13 @@ export class ChatService {
 
 		let response: Response
 		try {
-			console.log('requestBody', requestBody)
 			response = await fetch('https://river-on-tips.xyz/generate', {
 				method: 'POST',
-				mode: 'no-cors',
-				headers: headers,
+				headers: {
+					'Content-Type': 'application/json',
+				},
 				body: JSON.stringify({ prompt: requestBody?.messages[1]?.content[0]?.text }),
 			})
-
-			console.log('response', response.json())
-			/*response = await fetch(endpoint, {
-				method: 'POST',
-				headers: headers,
-				body: JSON.stringify(requestBody),
-				signal: this.abortController.signal,
-			})*/
 		} catch (error) {
 			if (error instanceof Error && error.name === 'AbortError') {
 				NotificationService.handleUnexpectedError(error, 'Stream reading was aborted.')
@@ -211,17 +195,16 @@ export class ChatService {
 		}
 
 		if (this.abortController.signal.aborted) {
-			// todo: propagate to ui?
 			console.log('Stream aborted')
 			return // Early return if the fetch was aborted
 		}
 
+		console.log('response', response.body)
 		if (response.body) {
-			// Read the response as a stream of data
 			const reader = response.body.getReader()
 			const decoder = new TextDecoder('utf-8')
 
-			let partialDecodedChunk = undefined
+			let partialDecodedChunk = ''
 			try {
 				while (true) {
 					const streamChunk = await reader.read()
@@ -229,63 +212,33 @@ export class ChatService {
 					if (done) {
 						break
 					}
-					let DONE = false
+
 					let decodedChunk = decoder.decode(value)
-					if (partialDecodedChunk) {
-						decodedChunk = 'data: ' + partialDecodedChunk + decodedChunk
-						partialDecodedChunk = undefined
-					}
-					const rawData = decodedChunk.split('data: ').filter(Boolean) // Split on "data: " and remove any empty strings
-					const chunks: CompletionChunk[] = rawData
-						.map((chunk, index) => {
-							partialDecodedChunk = undefined
-							chunk = chunk.trim()
-							if (chunk.length == 0) {
-								return
-							}
-							if (chunk === '[DONE]') {
-								DONE = true
-								return
-							}
-							let o
-							try {
-								o = JSON.parse(chunk)
-							} catch (err) {
-								if (index === rawData.length - 1) {
-									// Check if this is the last element
-									partialDecodedChunk = chunk
-								} else if (err instanceof Error) {
-									console.error(err.message)
-								}
-							}
-							return o
-						})
-						.filter(Boolean) // Filter out undefined values which may be a result of the [DONE] term check
+					partialDecodedChunk += decodedChunk
 
-					let accumulatedContet = ''
-					chunks.forEach(chunk => {
-						chunk.choices.forEach(choice => {
-							if (choice.delta && choice.delta.content) {
-								// Check if delta and content exist
-								const content = choice.delta.content
-								try {
-									accumulatedContet += content
-								} catch (err) {
-									if (err instanceof Error) {
-										console.error(err.message)
-									}
-									console.log('error in client. continuing...')
-								}
-							} else if (choice?.finish_reason === 'stop') {
-								// done
-							}
-						})
-					})
-					debouncedCallback(accumulatedContet)
-
-					if (DONE) {
-						return
+					let jsonResponse
+					try {
+						jsonResponse = JSON.parse(partialDecodedChunk)
+					} catch (err) {
+						if (err instanceof SyntaxError) {
+							continue
+						} else {
+							throw err
+						}
 					}
+
+					const { keywords, original_response } = jsonResponse
+					const fromPromptComponents = keywords?.from_prompt?.components || []
+					const fromResponseComponents = keywords?.from_response?.components || []
+					console.log('fromPromptComponents', fromPromptComponents)
+
+					let accumulatedContent = original_response || ''
+					accumulatedContent += `\nFrom Prompt Components: ${fromPromptComponents.join(', ')}`
+					accumulatedContent += `\nFrom Response Components: ${fromResponseComponents.join(', ')}`
+					console.log('accumulatedContent', accumulatedContent)
+					debouncedCallback(accumulatedContent, [], fromPromptComponents)
+
+					break
 				}
 			} catch (error) {
 				if (error instanceof Error && error.name === 'AbortError') {

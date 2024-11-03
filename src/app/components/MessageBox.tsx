@@ -16,7 +16,6 @@ import {
 	SelectValue,
 } from '../../../components/ui/select'
 import { Calendar } from '../../../components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '../../../components/ui/popover'
 import { MAX_ROWS, SNIPPET_MARKERS } from '../constants/appConstants'
 import { SubmitButton } from './SubmitButton'
 import { ChatService } from '../service/ChatService'
@@ -336,6 +335,10 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 				setShowCalendar(true)
 				setIsSelectOpen(true)
 			} else {
+				window.parent.postMessage(
+					{ pluginMessage: { type: 'set-value', name: 'filter-date', value } },
+					'*'
+				)
 				setShowCalendar(false)
 				setIsSelectOpen(false)
 			}

@@ -61,7 +61,8 @@ const ChatBlock: React.FC<Props> = ({ block, loading }) => {
 	const handleTextChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
 		setEditedBlockContent(event.target.value)
 	}
-
+	console.log('loading', loading)
+	console.log('block', block)
 	return (
 		<div
 			key={`chat-block-${block.id}`}
@@ -115,6 +116,8 @@ const ChatBlock: React.FC<Props> = ({ block, loading }) => {
 												text={block.content}
 												fileDataRef={block.fileDataRef ? block.fileDataRef : []}
 											/>
+										) : loading ? (
+											<span className="streaming-dot">•••</span>
 										) : (
 											<MarkdownBlock markdown={block.content} role={block.role} loading={loading} />
 										)}

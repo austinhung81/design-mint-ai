@@ -29,32 +29,42 @@ function getMainComponentNames() {
 }
 
 async function findFrames(keywords: string[]) {
-	const projectName = figma.root.name // Get the project name from the file name
+	const projectName = figma.root.name.replace(/ /g, '-') // Replace spaces with hyphens
 	const frameNodes = figma.root.findAll(node => {
-		if (node.type === 'FRAME') {
-			const frames = node.findAll(child => {
+		if (node.type === 'FRAME' && node.parent.type === 'PAGE') {
+			console.log('node:', node)
+			const hasMatchingChild = node.findAll(child => {
 				return (
-					(child.type === 'COMPONENT' || child.type === 'INSTANCE') && child.name === keywords[0]
+					(child.type === 'COMPONENT' || child.type === 'INSTANCE') &&
+					keywords.some(keyword => child.name.includes(keyword) && child.visible)
 				)
 			})
-			return frames.length > 0
+			console.log('hasMatchingChild:', hasMatchingChild)
+			return hasMatchingChild.length > 0
 		}
 		return false
 	}) as FrameNode[] // Ensure the result is of type FrameNode[]
 	console.log('figma', figma)
 	console.log('figma.fileKey', figma.fileKey)
 	console.log('figma.currentUser', figma.currentUser)
-	const frameDetails = frameNodes.map(frame => ({
-		url: `https://www.figma.com/file/${figma.fileKey}/${projectName}?node-id=${frame.id}`,
-		name: frame.name,
-		node: frame,
-	}))
 
-	/* Clone and append frames to the current page
-	for (const frame of framesWithCheckbox) {
-		const clonedFrame = frame.clone()
-		figma.currentPage.appendChild(clonedFrame)
-	}*/
+	const frameDetails = await Promise.all(
+		frameNodes.map(async frame => {
+			const nodeId = frame.id.replace(/:/g, '-') // Replace ':' with '-'
+			const preview = await frame.exportAsync({
+				format: 'PNG',
+				constraint: { type: 'SCALE', value: 2 },
+			})
+			const previewUrl = `data:image/png;base64,${figma.base64Encode(preview)}`
+			console.log('figma.previewUrl', previewUrl)
+			return {
+				url: `https://www.figma.com/design/${figma.fileKey}/${projectName}?node-id=${nodeId}`,
+				name: frame.name,
+				node: frame,
+				preview: previewUrl,
+			}
+		})
+	)
 
 	return frameDetails
 }
@@ -74,6 +84,13 @@ figma.ui.onmessage = async msg => {
 		} else if (msg.type === 'find-frames') {
 			const frames = await findFrames(msg.keywords)
 			figma.ui.postMessage({ type: 'frames', frames: frames })
+		} else if (msg.type === 'navigate-to-node') {
+			console.log('Navigating to node:', msg.nodeId)
+			const node = figma.getNodeById(msg.nodeId) as SceneNode
+			if (node) {
+				figma.viewport.scrollAndZoomIntoView([node])
+				figma.currentPage.selection = [node]
+			}
 		}
 	} catch (error) {
 		console.error('Error processing message:', msg, error)

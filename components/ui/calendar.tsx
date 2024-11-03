@@ -17,7 +17,7 @@ function Calendar() {
 	const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 	const [dayCount, setDayCount] = useState<Array<number>>([])
 	const [blankDays, setBlankDays] = useState<Array<number>>([])
-	const [showDatepicker, setShowDatepicker] = useState(false)
+	//const [showDatepicker, setShowDatepicker] = useState(false)
 	const [datepickerHeaderDate, setDatepickerHeaderDate] = useState(new Date())
 	const [selectedDate, setSelectedDate] = useState(new Date())
 	const [type, setType] = useState<DatepickerType>('date')
@@ -57,7 +57,7 @@ function Calendar() {
 		setSelectedDate(
 			new Date(datepickerHeaderDate.getFullYear(), datepickerHeaderDate.getMonth(), date)
 		)
-		setShowDatepicker(false)
+		//setShowDatepicker(false)
 	}
 
 	const getDayCount = (date: Date) => {
@@ -89,7 +89,7 @@ function Calendar() {
 		setType('date')
 	}
 
-	const toggleDatepicker = () => setShowDatepicker(prev => !prev)
+	//const toggleDatepicker = () => setShowDatepicker(prev => !prev)
 
 	const showMonthPicker = () => setType('month')
 
@@ -175,7 +175,7 @@ function Calendar() {
 							<div key={i} style={{ width: '14.26%' }} className="px-1 mb-1">
 								<div
 									onClick={setDateValue(d)}
-									className={`cursor-pointer text-center text-sm leading-none rounded-full leading-loose transition ease-in-out duration-100 ${
+									className={`cursor-pointer text-center text-sm rounded-full leading-loose transition ease-in-out duration-100 ${
 										isToday(d) ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-blue-200'
 									}`}
 								>

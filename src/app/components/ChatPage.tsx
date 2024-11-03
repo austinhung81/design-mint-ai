@@ -17,6 +17,15 @@ import addIcon from '../assets/add.svg'
 import { predefinedMessages } from '../service/PredefinedMessages'
 import { getFrames } from '../../../lib/utils'
 
+type Frame = {
+	name: string
+	url: string
+	node: {
+		id: string
+	}
+	preview: string
+}
+
 export interface User {
 	id: string | null
 	name: string
@@ -49,14 +58,13 @@ const ChatPage = ({
 	const messageBoxRef = useRef<MessageBoxHandles>(null)
 	const [isLoading, setIsLoading] = useState(false)
 	const [userId, setUserId] = useState(null)
-	const [frames, setFrames] = useState(null)
+	//const [frames, setFrames] = useState(null)
 	useEffect(() => {
 		async function fetchStorageValues() {
 			setIsLoading(true)
 			const openaiModel = await getFigmaStorageValue('openai_model')
 			const user = (await getUser()) as User
 			const key = (openaiModel ?? '') as string
-			const frames = await getFrames(['Card 3'])
 			fetchModelById(key)
 				.then(async (model: OpenAIModel | null) => {
 					setModel(model)
@@ -66,7 +74,6 @@ const ChatPage = ({
 				})
 				.finally(() => setIsLoading(false))
 			setUserId(user?.id)
-			setFrames(frames)
 		}
 		fetchStorageValues()
 	}, [])
@@ -210,7 +217,6 @@ const ChatPage = ({
 		callback?: (callback: ChatMessage[]) => void
 	) => {
 		let content: string = message
-
 		setMessages((prevMessages: ChatMessage[]) => {
 			const message: ChatMessage = {
 				id: prevMessages.length + 1,
@@ -230,7 +236,6 @@ const ChatPage = ({
 			fileDataRef: fileDataRef,
 		}
 		const updatedMessages = [...messages, newMessage]
-		console.log('updatedMessages', updatedMessages)
 		if (callback) {
 			callback(updatedMessages)
 		}
@@ -239,52 +244,66 @@ const ChatPage = ({
 		messageBoxRef.current?.clearInputValue()
 	}
 
-	function handleStreamedResponse(content: string, fileDataRef: FileDataRef[]) {
-		console.log('handleStreamedResponse', frames)
-		setMessages(prevMessages => {
-			let isNew: boolean = false
-			try {
-				// todo: this shouldn't be necessary
-				if (prevMessages.length == 0) {
-					console.error('prevMessages should not be empty in handleStreamedResponse.')
-					return []
-				}
-				if (prevMessages[prevMessages.length - 1].role == Role.User) {
-					isNew = true
-				}
-			} catch (e) {
-				console.error('Error getting the role')
-				console.error('prevMessages = ' + JSON.stringify(prevMessages))
-				console.error(e)
-			}
-
-			if (isNew) {
-				const message: ChatMessage = {
-					id: prevMessages.length + 1,
-					role: Role.Assistant,
-					messageType: MessageType.Normal,
-					content: content,
-					fileDataRef: fileDataRef,
-				}
-				return [...prevMessages, message]
-			} else {
-				const frameNames = frames
-					.map((frame, index) => `${index + 1}. ${frame.name}, ${frame.url}`)
+	function handleStreamedResponse(content: string, fileDataRef: FileDataRef[], keywords: string[]) {
+		console.log('keywords', keywords)
+		// Call getFrames and handle the promise
+		getFrames(keywords)
+			.then((frames: Frame[]) => {
+				const frameDetails = frames
+					.map((frame, index) => {
+						return `${index + 1}. ${frame.name}, ${frame.url}\n<img src="${
+							frame.preview
+						}" style="width:100px;" />`
+					})
 					.join('\n')
-				// Clone the last message and update its content
-				const updatedMessage = {
-					...prevMessages[prevMessages.length - 1],
-					//content: prevMessages[prevMessages.length - 1].content + content,
-					content: `Here are the files of the designs:\n${frameNames}`,
-				}
-				// Replace the old last message with the updated one
-				return [...prevMessages.slice(0, -1), updatedMessage]
-			}
-		})
+
+				setMessages(prevMessages => {
+					let isNew: boolean = false
+					try {
+						// todo: this shouldn't be necessary
+						if (prevMessages.length == 0) {
+							console.error('prevMessages should not be empty in handleStreamedResponse.')
+							return []
+						}
+						if (prevMessages[prevMessages.length - 1].role == Role.User) {
+							isNew = true
+						}
+					} catch (e) {
+						console.error('Error getting the role')
+						console.error('prevMessages = ' + JSON.stringify(prevMessages))
+						console.error(e)
+					}
+
+					if (isNew) {
+						const message: ChatMessage = {
+							id: prevMessages.length + 1,
+							role: Role.Assistant,
+							messageType: MessageType.Normal,
+							content: `${content}\nHere are the files of the designs:\n${frameDetails}`,
+							fileDataRef: fileDataRef,
+						}
+						return [...prevMessages, message]
+					} else {
+						// Clone the last message and update its content
+						const updatedMessage = {
+							...prevMessages[prevMessages.length - 1],
+							content: `${
+								prevMessages[prevMessages.length - 1].content
+							}\nHere are the files of the designs:\n${frameDetails}`,
+						}
+						// Replace the old last message with the updated one
+						return [...prevMessages.slice(0, -1), updatedMessage]
+					}
+				})
+			})
+			.catch(error => {
+				console.error('Error fetching frames:', error)
+			})
 	}
 
 	function sendMessage(updatedMessages: ChatMessage[]) {
 		setLoading(true)
+		console.log('%%%%%%%%%%sendMessage')
 		clearInputArea()
 		let systemPrompt = getFirstValidString(conversation?.systemPrompt, DEFAULT_INSTRUCTIONS)
 		let messages: ChatMessage[] = [

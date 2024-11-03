@@ -22,6 +22,10 @@ const EditorsDropdown = () => {
 			default:
 				displayValue = 'By: Me'
 		}
+		window.parent.postMessage(
+			{ pluginMessage: { type: 'set-value', name: 'filter-editor', value } },
+			'*'
+		)
 		setSelectedEditor(`By: ${displayValue}`)
 	}
 
