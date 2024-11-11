@@ -61,8 +61,6 @@ const ChatBlock: React.FC<Props> = ({ block, loading }) => {
 	const handleTextChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
 		setEditedBlockContent(event.target.value)
 	}
-	console.log('loading', loading)
-	console.log('block', block)
 	return (
 		<div
 			key={`chat-block-${block.id}`}

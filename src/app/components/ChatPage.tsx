@@ -245,7 +245,6 @@ const ChatPage = ({
 	}
 
 	function handleStreamedResponse(content: string, fileDataRef: FileDataRef[], keywords: string[]) {
-		console.log('keywords', keywords)
 		// Call getFrames and handle the promise
 		getFrames(keywords)
 			.then((frames: Frame[]) => {
@@ -303,7 +302,6 @@ const ChatPage = ({
 
 	function sendMessage(updatedMessages: ChatMessage[]) {
 		setLoading(true)
-		console.log('%%%%%%%%%%sendMessage')
 		clearInputArea()
 		let systemPrompt = getFirstValidString(conversation?.systemPrompt, DEFAULT_INSTRUCTIONS)
 		let messages: ChatMessage[] = [

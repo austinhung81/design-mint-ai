@@ -168,15 +168,24 @@ export class ChatService {
 			messages
 		)
 		requestBody.messages = mappedMessages
-
 		let response: Response
+		let lastUserMessage = null
+
+		if (requestBody?.messages && requestBody?.messages.length > 0) {
+			for (let i = requestBody?.messages.length - 1; i >= 0; i--) {
+				if (requestBody?.messages[i].role === 'user') {
+					lastUserMessage = requestBody?.messages[i].content[0]?.text
+					break
+				}
+			}
+		}
 		try {
 			response = await fetch('https://river-on-tips.xyz/generate', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({ prompt: requestBody?.messages[1]?.content[0]?.text }),
+				body: JSON.stringify({ prompt: lastUserMessage }),
 			})
 		} catch (error) {
 			if (error instanceof Error && error.name === 'AbortError') {
@@ -199,7 +208,6 @@ export class ChatService {
 			return // Early return if the fetch was aborted
 		}
 
-		console.log('response', response.body)
 		if (response.body) {
 			const reader = response.body.getReader()
 			const decoder = new TextDecoder('utf-8')
@@ -230,12 +238,10 @@ export class ChatService {
 					const { keywords, original_response } = jsonResponse
 					const fromPromptComponents = keywords?.from_prompt?.components || []
 					const fromResponseComponents = keywords?.from_response?.components || []
-					console.log('fromPromptComponents', fromPromptComponents)
 
 					let accumulatedContent = original_response || ''
 					accumulatedContent += `\nFrom Prompt Components: ${fromPromptComponents.join(', ')}`
 					accumulatedContent += `\nFrom Response Components: ${fromResponseComponents.join(', ')}`
-					console.log('accumulatedContent', accumulatedContent)
 					debouncedCallback(accumulatedContent, [], fromPromptComponents)
 
 					break

@@ -32,6 +32,7 @@ interface MessageTextareaProps {
 }
 
 function getList({ trigger, componentNames }) {
+	if (componentNames.length === 0) return []
 	switch (trigger) {
 		case '/':
 			return componentNames.map(component => component)
