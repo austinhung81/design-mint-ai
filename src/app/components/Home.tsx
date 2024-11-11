@@ -27,10 +27,22 @@ const Home = ({ setActiveTab }) => {
 			setComponentNames(componentNames as string[])
 			setActiveConversationId(activeConversationId as string)
 			setIsFetching(false)
+
+			//await sendComponentNames(componentNames as string[])
 		}
 
 		fetchStorageValues()
 	}, [])
+
+	const sendComponentNames = async (componentNames: string[]) => {
+		await fetch('https://river-on-tips.xyz/generate', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ componentNames }),
+		})
+	}
 
 	const Welcome = () => {
 		return (
