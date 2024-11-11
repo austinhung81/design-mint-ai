@@ -16,6 +16,7 @@ import {
 	SelectValue,
 } from '../../../components/ui/select'
 import { Calendar } from '../../../components/ui/calendar'
+import Tooltip from '../../../components/ui/tooltip'
 import { MAX_ROWS, SNIPPET_MARKERS } from '../constants/appConstants'
 import { SubmitButton } from './SubmitButton'
 import { ChatService } from '../service/ChatService'
@@ -397,36 +398,43 @@ const MessageBox = forwardRef<MessageBoxHandles, MessageBoxProps>(
 							{/* Cancel/Submit Button */}
 							<div className="flex justify-between">
 								<div className="flex gap-2">
-									<div>
-										<EditorsDropdown />
-									</div>
-									<div className="relative">
-										<Select
-											open={isSelectOpen}
-											onValueChange={handleSelectChange}
-											onOpenChange={handleOpenChange}
-										>
-											<SelectTrigger className="min-w-[120px] rounded-full">
-												<SelectValue placeholder="In: Time">{selectedTime}</SelectValue>
-											</SelectTrigger>
-											<SelectContent>
-												{showCalendar ? (
-													<div className="max-w-52">
-														<Calendar />
-													</div>
-												) : (
-													<>
-														<SelectItem value="customise">Customise timeframe</SelectItem>
-														<SelectItem value="this-year">This year</SelectItem>
-														<SelectItem value="6-months">Last 6 months</SelectItem>
-														<SelectItem value="last-month">Last month</SelectItem>
-														<SelectItem value="last-week">Last week</SelectItem>
-														<SelectItem value="all-time">All time</SelectItem>
-													</>
-												)}
-											</SelectContent>
-										</Select>
-									</div>
+									<Tooltip title="Filter available soon." side="top" sideOffset={5}>
+										<div>
+											<EditorsDropdown />
+										</div>
+									</Tooltip>
+									<Tooltip title="Filter available soon." side="top" sideOffset={5}>
+										<div className="relative">
+											<Select
+												open={isSelectOpen}
+												onValueChange={handleSelectChange}
+												onOpenChange={handleOpenChange}
+											>
+												<SelectTrigger
+													className="min-w-[120px] rounded-full disabled:cursor-not-allowed"
+													disabled
+												>
+													<SelectValue placeholder="In: Time">{selectedTime}</SelectValue>
+												</SelectTrigger>
+												<SelectContent>
+													{showCalendar ? (
+														<div className="max-w-52">
+															<Calendar />
+														</div>
+													) : (
+														<>
+															<SelectItem value="customise">Customise timeframe</SelectItem>
+															<SelectItem value="this-year">This year</SelectItem>
+															<SelectItem value="6-months">Last 6 months</SelectItem>
+															<SelectItem value="last-month">Last month</SelectItem>
+															<SelectItem value="last-week">Last week</SelectItem>
+															<SelectItem value="all-time">All time</SelectItem>
+														</>
+													)}
+												</SelectContent>
+											</Select>
+										</div>
+									</Tooltip>
 								</div>
 
 								{loading ? (

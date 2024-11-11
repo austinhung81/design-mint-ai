@@ -31,7 +31,7 @@ const EditorsDropdown = () => {
 
 	return (
 		<Select onValueChange={handleEditorChange}>
-			<SelectTrigger className="min-w-[120px] rounded-full">
+			<SelectTrigger className="min-w-[120px] rounded-full disabled:cursor-not-allowed" disabled>
 				<SelectValue placeholder="By: Editor">{selectedEditor}</SelectValue>
 			</SelectTrigger>
 			<SelectContent>
