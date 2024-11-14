@@ -2,18 +2,20 @@ figma.showUI(__html__, { width: 600, height: 700, title: 'Mint AI' })
 
 /* Handle postMessage from backend (optional)
 window.onmessage = event => {
-	if (event.data.pluginMessage) {
-		const token = event.data.pluginMessage
-		// Store the token and use it for future API requests
-		console.log('OAuth token:', token)
-	}
+    if (event.data.pluginMessage) {
+        const token = event.data.pluginMessage
+        // Store the token and use it for future API requests
+        console.log('OAuth token:', token)
+    }
 }*/
 
-function getMainComponentNames() {
+async function getMainComponentNames() {
+	// Load all pages asynchronously
+	await figma.loadAllPagesAsync()
+
 	const mainComponents = figma.root.findAll(node => node.type === 'COMPONENT')
 	let componentNames = mainComponents.map(component => {
 		// Check if the component has a parent and the parent has a name
-		//console.log('component.parent:', component.parent)
 		const parentName =
 			component.parent && component.parent.name && component.parent.type !== 'PAGE'
 				? component.parent.name
@@ -22,13 +24,14 @@ function getMainComponentNames() {
 	})
 
 	// Optional: Ensure names are unique if necessary
-	// This step might not be needed if parent names are sufficient for distinction
 	componentNames = [...new Set(componentNames)] // Remove duplicates
-	//console.log('Main component names:', componentNames)
 	return componentNames
 }
 
 async function findFrames(keywords: string[]) {
+	// Load all pages asynchronously
+	await figma.loadAllPagesAsync()
+
 	const projectName = figma.root.name.replace(/ /g, '-') // Replace spaces with hyphens
 	const frameNodes = figma.root.findAll(node => {
 		if (node.type === 'FRAME' && node.parent.type === 'PAGE') {
@@ -71,7 +74,7 @@ figma.ui.onmessage = async msg => {
 			const value = await figma.clientStorage.getAsync(msg.name)
 			figma.ui.postMessage({ type: 'return-value', value: value })
 		} else if (msg.type === 'get-main-component-names') {
-			const componentNames = getMainComponentNames()
+			const componentNames = await getMainComponentNames()
 			figma.ui.postMessage({ type: 'main-component-names', names: componentNames })
 		} else if (msg.type === 'get-user') {
 			figma.ui.postMessage({ type: 'user', user: figma.currentUser })
@@ -79,8 +82,12 @@ figma.ui.onmessage = async msg => {
 			const frames = await findFrames(msg.keywords)
 			figma.ui.postMessage({ type: 'frames', frames: frames })
 		} else if (msg.type === 'navigate-to-node') {
-			const node = figma.getNodeById(msg.nodeId) as SceneNode
+			const node = (await figma.getNodeByIdAsync(msg.nodeId)) as SceneNode
 			if (node) {
+				// Ensure the node is on the current page
+				if (node.parent.type === 'PAGE') {
+					await figma.setCurrentPageAsync(node.parent)
+				}
 				figma.viewport.scrollAndZoomIntoView([node])
 				figma.currentPage.selection = [node]
 			}
