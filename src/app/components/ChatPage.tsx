@@ -278,7 +278,7 @@ const ChatPage = ({
 							id: prevMessages.length + 1,
 							role: Role.Assistant,
 							messageType: MessageType.Normal,
-							content: `${content}\nHere are the files of the designs:\n${frameDetails}`,
+							content: `${content}\nHere are the links of the designs:\n${frameDetails}`,
 							fileDataRef: fileDataRef,
 						}
 						return [...prevMessages, message]
@@ -288,7 +288,7 @@ const ChatPage = ({
 							...prevMessages[prevMessages.length - 1],
 							content: `${
 								prevMessages[prevMessages.length - 1].content
-							}\nHere are the files of the designs:\n${frameDetails}`,
+							}\nHere are the links of the designs:\n${frameDetails}`,
 						}
 						// Replace the old last message with the updated one
 						return [...prevMessages.slice(0, -1), updatedMessage]

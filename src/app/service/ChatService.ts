@@ -235,19 +235,15 @@ export class ChatService {
 						}
 					}
 
-					const { keywords, original_response } = jsonResponse
+					const { keywords } = jsonResponse
 					const fromPromptComponents = keywords?.from_prompt?.components || []
-					const fromResponseComponents = keywords?.from_response?.components || []
 
 					let accumulatedContent = ''
 
 					if (!keywords || fromPromptComponents.length === 0) {
-						accumulatedContent = `I’m afraid I cannot find the designs based on the provided information. Please provide more context about what you are trying to find and I will do my best to assist you further.\n\n\n**Search Tips:**\n- Describe the design: Use words that describe how the design looks, what it's made of (e.g., components, shapes), or what it's called (layer names).`
-					} else {
-						accumulatedContent = original_response || ''
-						accumulatedContent += `\nFrom Prompt Components: ${fromPromptComponents.join(', ')}`
-						accumulatedContent += `\nFrom Response Components: ${fromResponseComponents.join(', ')}`
+						accumulatedContent = `I’m afraid I cannot find the designs based on the provided information. Please provide more context about what you are trying to find and I will do my best to assist you further.\n\n**Search Tips:**\n- **Describe the design**: Use words that describe how the design looks, what it's made of (e.g., components, shapes), or what it's called (layer names).`
 					}
+
 					debouncedCallback(accumulatedContent, [], fromPromptComponents)
 
 					break
