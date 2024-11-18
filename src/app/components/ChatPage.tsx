@@ -273,12 +273,16 @@ const ChatPage = ({
 						console.error(e)
 					}
 
+					const linksMessage = frameDetails
+						? `\nHere are the links of the designs:\n${frameDetails}`
+						: ''
+
 					if (isNew) {
 						const message: ChatMessage = {
 							id: prevMessages.length + 1,
 							role: Role.Assistant,
 							messageType: MessageType.Normal,
-							content: `${content}\nHere are the links of the designs:\n${frameDetails}`,
+							content: `${content}${linksMessage}`,
 							fileDataRef: fileDataRef,
 						}
 						return [...prevMessages, message]
@@ -286,9 +290,7 @@ const ChatPage = ({
 						// Clone the last message and update its content
 						const updatedMessage = {
 							...prevMessages[prevMessages.length - 1],
-							content: `${
-								prevMessages[prevMessages.length - 1].content
-							}\nHere are the links of the designs:\n${frameDetails}`,
+							content: `${prevMessages[prevMessages.length - 1].content}${linksMessage}`,
 						}
 						// Replace the old last message with the updated one
 						return [...prevMessages.slice(0, -1), updatedMessage]

@@ -9,6 +9,15 @@ window.onmessage = event => {
     }
 }*/
 
+figma.on('close', async () => {
+	try {
+		await figma.clientStorage.setAsync('active_conversation_id', null)
+		console.log('Storage value cleared on plugin close')
+	} catch (error) {
+		console.error('Error clearing storage value on plugin close:', error)
+	}
+})
+
 async function getMainComponentNames() {
 	// Load all pages asynchronously
 	await figma.loadAllPagesAsync()
