@@ -6,6 +6,7 @@ import { Loader } from '../../../components/ui/loader'
 const Home = ({ setActiveTab }) => {
 	const [apiKey, setApiKey] = useState('')
 	const [componentNames, setComponentNames] = useState([])
+	//const [colors, setColors] = useState([])
 	const [isFetching, setIsFetching] = useState(true)
 	const [activeConversationId, setActiveConversationId] = useState('')
 
@@ -16,6 +17,7 @@ const Home = ({ setActiveTab }) => {
 			const openaiModel = await getFigmaStorageValue('openai_model')
 			const activeConversationId = await getFigmaStorageValue('active_conversation_id')
 			const componentNames = await getProjectMainComponents()
+			//const colors = await getProjectColorStyles()
 			//const frames = await getFrames()
 			if (!apiKey || !openaiModel) {
 				setApiKey(null)
@@ -25,6 +27,7 @@ const Home = ({ setActiveTab }) => {
 			const userAPIKey = (apiKey ?? '') as string
 			setApiKey(userAPIKey)
 			setComponentNames(componentNames as string[])
+			//setColors(colors as string[])
 			setActiveConversationId(activeConversationId as string)
 			setIsFetching(false)
 

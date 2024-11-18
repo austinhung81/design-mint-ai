@@ -244,9 +244,14 @@ const ChatPage = ({
 		messageBoxRef.current?.clearInputValue()
 	}
 
-	function handleStreamedResponse(content: string, fileDataRef: FileDataRef[], keywords: string[]) {
+	function handleStreamedResponse(
+		content: string,
+		fileDataRef: FileDataRef[],
+		keywords: string[],
+		colors: string[]
+	) {
 		// Call getFrames and handle the promise
-		getFrames(keywords)
+		getFrames({ keywords, colors })
 			.then((frames: Frame[]) => {
 				const frameDetails = frames
 					.map((frame, index) => {

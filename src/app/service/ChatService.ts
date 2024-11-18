@@ -107,10 +107,15 @@ export class ChatService {
 	private static accumulatedContent: string = '' // To accumulate content between debounced calls
 
 	static debounceCallback(
-		callback: (content: string, fileDataRef: FileDataRef[], keywords: string[]) => void,
+		callback: (
+			content: string,
+			fileDataRef: FileDataRef[],
+			keywords: string[],
+			colors: string[]
+		) => void,
 		delay: number = CHAT_STREAM_DEBOUNCE_TIME
 	) {
-		return (content: string, fileDataRef: FileDataRef[], keywords: string[]) => {
+		return (content: string, fileDataRef: FileDataRef[], keywords: string[], colors: string[]) => {
 			this.accumulatedContent += content // Accumulate content on each call
 			const now = Date.now()
 			const timeSinceLastCall = now - this.lastCallbackTime
@@ -121,7 +126,7 @@ export class ChatService {
 
 			this.callDeferred = window.setTimeout(
 				() => {
-					callback(this.accumulatedContent, fileDataRef, keywords) // Pass the accumulated content to the original callback
+					callback(this.accumulatedContent, fileDataRef, keywords, colors) // Pass the accumulated content to the original callback
 					this.lastCallbackTime = Date.now()
 					this.accumulatedContent = '' // Reset the accumulated content after the callback is called
 				},
@@ -135,7 +140,12 @@ export class ChatService {
 	static async sendMessageStreamed(
 		chatSettings: ChatSettings,
 		messages: ChatMessage[],
-		callback: (content: string, fileDataRef: FileDataRef[], keywords: string[]) => void
+		callback: (
+			content: string,
+			fileDataRef: FileDataRef[],
+			keywords: string[],
+			colors: string[]
+		) => void
 	): Promise<any> {
 		const debouncedCallback = this.debounceCallback(callback)
 		//const OPENAI_API_KEY = await fetchStorageAPIKey()
@@ -237,6 +247,10 @@ export class ChatService {
 
 					const { keywords } = jsonResponse
 					const fromPromptComponents = keywords?.from_prompt?.components || []
+					const fromPromptColors =
+						keywords?.from_prompt?.colors && keywords?.from_prompt?.colors.length > 0
+							? keywords?.from_prompt?.colors
+							: keywords?.from_response?.colors || []
 
 					let accumulatedContent = ''
 
@@ -244,7 +258,7 @@ export class ChatService {
 						accumulatedContent = `I’m afraid I cannot find the designs based on the provided information. Please provide more context about what you are trying to find and I will do my best to assist you further.\n\n**Search Tips:**\n- **Describe the design**: Use words that describe how the design looks, what it's made of (e.g., components, shapes), or what it's called (layer names).`
 					}
 
-					debouncedCallback(accumulatedContent, [], fromPromptComponents)
+					debouncedCallback(accumulatedContent, [], fromPromptComponents, fromPromptColors)
 
 					break
 				}
