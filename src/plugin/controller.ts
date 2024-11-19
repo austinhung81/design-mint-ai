@@ -99,10 +99,10 @@ async function findFrames(keywords: string[], colors: string[]) {
 	}) as FrameNode[] // Ensure the result is of type FrameNode[]
 
 	// Sort frames by name (or another property) and limit to the most recent 20 frames
-	const sortedFrameNodes = frameNodes.sort((a, b) => a.name.localeCompare(b.name)).slice(0, 10)
+	// const sortedFrameNodes = frameNodes.sort((a, b) => a.name.localeCompare(b.name)).slice(0, 10)
 
 	const frameDetails = await Promise.all(
-		sortedFrameNodes.map(async frame => {
+		frameNodes.map(async frame => {
 			const nodeId = frame.id.replace(/:/g, '-') // Replace ':' with '-'
 			const preview = await frame.exportAsync({
 				format: 'PNG',
