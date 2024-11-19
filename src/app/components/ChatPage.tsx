@@ -244,9 +244,14 @@ const ChatPage = ({
 		messageBoxRef.current?.clearInputValue()
 	}
 
-	function handleStreamedResponse(content: string, fileDataRef: FileDataRef[], keywords: string[]) {
+	function handleStreamedResponse(
+		content: string,
+		fileDataRef: FileDataRef[],
+		keywords: string[],
+		colors: string[]
+	) {
 		// Call getFrames and handle the promise
-		getFrames(keywords)
+		getFrames({ keywords, colors })
 			.then((frames: Frame[]) => {
 				const frameDetails = frames
 					.map((frame, index) => {
@@ -272,10 +277,9 @@ const ChatPage = ({
 						console.error('prevMessages = ' + JSON.stringify(prevMessages))
 						console.error(e)
 					}
-
 					const linksMessage = frameDetails
 						? `\nHere are the links of the designs:\n${frameDetails}`
-						: ''
+						: `I’m afraid I cannot find the designs based on the provided information. Please provide more context about what you are trying to find and I will do my best to assist you further.\n\n**Search Tips:**\n- **Describe the design**: Use words that describe how the design looks, what it's made of (e.g., components, shapes), or what it's called (layer names).`
 
 					if (isNew) {
 						const message: ChatMessage = {

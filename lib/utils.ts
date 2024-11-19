@@ -40,6 +40,22 @@ export function getProjectMainComponents() {
 	return promise
 }
 
+export function getProjectColorStyles() {
+	window.parent.postMessage({ pluginMessage: { type: 'get-color-styles' } }, '*')
+
+	const promise = new Promise(function (resolve) {
+		window.addEventListener(
+			'message',
+			function (event) {
+				resolve(event.data.pluginMessage.colors)
+			},
+			{ once: true }
+		)
+	})
+
+	return promise
+}
+
 export function getProjectEditors() {
 	window.parent.postMessage({ pluginMessage: { type: 'get-editors' } }, '*')
 
@@ -56,8 +72,8 @@ export function getProjectEditors() {
 	return promise
 }
 
-export function getFrames(keywords: string[]) {
-	window.parent.postMessage({ pluginMessage: { type: 'find-frames', keywords } }, '*')
+export function getFrames({ keywords, colors }: { keywords: string[]; colors: string[] }) {
+	window.parent.postMessage({ pluginMessage: { type: 'find-frames', keywords, colors } }, '*')
 
 	const promise = new Promise(function (resolve) {
 		window.addEventListener(

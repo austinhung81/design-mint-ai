@@ -18,6 +18,21 @@ figma.on('close', async () => {
 	}
 })
 
+async function getAllColorStyles() {
+	// Find all color styles
+	const colorStyles = figma.getLocalPaintStyles().filter(style => style.paints[0].type === 'SOLID')
+
+	// Convert color styles to hex values
+	const colorHexValues = colorStyles.map(style => {
+		const paint = style.paints[0] as SolidPaint
+		const { r, g, b } = paint.color
+		const hex = rgbToHex(r, g, b)
+		return hex
+	})
+	console.log('Color styles:', colorHexValues)
+	return colorHexValues
+}
+
 async function getMainComponentNames() {
 	// Load all pages asynchronously
 	await figma.loadAllPagesAsync()
@@ -37,23 +52,54 @@ async function getMainComponentNames() {
 	return componentNames
 }
 
-async function findFrames(keywords: string[]) {
+function rgbToHex(r: number, g: number, b: number): string {
+	const toHex = (value: number) => {
+		const hex = Math.round(value).toString(16)
+		return hex.length === 1 ? '0' + hex : hex
+	}
+	return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+}
+
+async function findFrames(keywords: string[], colors: string[]) {
 	// Load all pages asynchronously
 	await figma.loadAllPagesAsync()
-
+	console.log('Finding frames with keywords:', keywords)
+	console.log('Finding frames with colors:', colors)
 	const projectName = figma.root.name.replace(/ /g, '-') // Replace spaces with hyphens
 	const frameNodes = figma.root.findAll(node => {
 		if (node.type === 'FRAME' && node.parent.type === 'PAGE') {
 			const hasMatchingChild = node.findAll(child => {
+				let hasMatchingColor = false
+				if ((child.type === 'COMPONENT' || child.type === 'INSTANCE') && 'fills' in child) {
+					const fills = (child as GeometryMixin).fills
+					if (Array.isArray(fills)) {
+						hasMatchingColor = fills.some(fill => {
+							if (fill.type === 'SOLID') {
+								const hexColor = rgbToHex(
+									fill.color.r * 255,
+									fill.color.g * 255,
+									fill.color.b * 255
+								).toLowerCase()
+								return colors.map(color => color.toLowerCase()).includes(hexColor)
+							}
+							return false
+						})
+					}
+				}
+				const hasMatchingKeyword = keywords.some(
+					keyword => child.name.toLowerCase().includes(keyword.toLowerCase()) && child.visible
+				)
 				return (
-					(child.type === 'COMPONENT' || child.type === 'INSTANCE') &&
-					keywords.some(keyword => child.name.includes(keyword) && child.visible)
+					(colors.length === 0 && hasMatchingKeyword) || (hasMatchingColor && hasMatchingKeyword)
 				)
 			})
 			return hasMatchingChild.length > 0
 		}
 		return false
 	}) as FrameNode[] // Ensure the result is of type FrameNode[]
+
+	// Sort frames by name (or another property) and limit to the most recent 20 frames
+	// const sortedFrameNodes = frameNodes.sort((a, b) => a.name.localeCompare(b.name)).slice(0, 10)
 
 	const frameDetails = await Promise.all(
 		frameNodes.map(async frame => {
@@ -85,10 +131,13 @@ figma.ui.onmessage = async msg => {
 		} else if (msg.type === 'get-main-component-names') {
 			const componentNames = await getMainComponentNames()
 			figma.ui.postMessage({ type: 'main-component-names', names: componentNames })
+		} else if (msg.type === 'get-color-styles') {
+			const colorStyles = await getAllColorStyles()
+			figma.ui.postMessage({ type: 'get-color-styles', colors: colorStyles })
 		} else if (msg.type === 'get-user') {
 			figma.ui.postMessage({ type: 'user', user: figma.currentUser })
 		} else if (msg.type === 'find-frames') {
-			const frames = await findFrames(msg.keywords)
+			const frames = await findFrames(msg.keywords, msg.colors)
 			figma.ui.postMessage({ type: 'frames', frames: frames })
 		} else if (msg.type === 'navigate-to-node') {
 			const node = (await figma.getNodeByIdAsync(msg.nodeId)) as SceneNode
