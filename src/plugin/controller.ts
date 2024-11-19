@@ -87,7 +87,7 @@ async function findFrames(keywords: string[], colors: string[]) {
 					}
 				}
 				const hasMatchingKeyword = keywords.some(
-					keyword => child.name.includes(keyword) && child.visible
+					keyword => child.name.toLowerCase().includes(keyword.toLowerCase()) && child.visible
 				)
 				return (
 					(colors.length === 0 && hasMatchingKeyword) || (hasMatchingColor && hasMatchingKeyword)
