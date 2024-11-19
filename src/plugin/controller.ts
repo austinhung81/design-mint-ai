@@ -93,7 +93,6 @@ async function findFrames(keywords: string[], colors: string[]) {
 					(colors.length === 0 && hasMatchingKeyword) || (hasMatchingColor && hasMatchingKeyword)
 				)
 			})
-			console.log('Matching child nodes:', hasMatchingChild)
 			return hasMatchingChild.length > 0
 		}
 		return false
@@ -132,6 +131,9 @@ figma.ui.onmessage = async msg => {
 		} else if (msg.type === 'get-main-component-names') {
 			const componentNames = await getMainComponentNames()
 			figma.ui.postMessage({ type: 'main-component-names', names: componentNames })
+		} else if (msg.type === 'get-color-styles') {
+			const colorStyles = await getAllColorStyles()
+			figma.ui.postMessage({ type: 'get-color-styles', colors: colorStyles })
 		} else if (msg.type === 'get-user') {
 			figma.ui.postMessage({ type: 'user', user: figma.currentUser })
 		} else if (msg.type === 'find-frames') {
