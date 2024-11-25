@@ -257,10 +257,15 @@ const ChatPage = ({
 					.map((frame, index) => {
 						return `${index + 1}. ${frame.name}, ${frame.url}\n<img src="${
 							frame.preview
-						}" style="width:100px;" />`
+						}" style="width:100px;" /> <div onclick="insertFrame(${index})">Insert Frame</div>`
 					})
 					.join('\n')
 
+				// Function to handle frame insertion
+				function insertFrame(frame) {
+					console.log('Inserting frame:', frame)
+					parent.postMessage({ pluginMessage: { type: 'insert-frame', frame: frame } }, '*')
+				}
 				setMessages(prevMessages => {
 					let isNew: boolean = false
 					try {

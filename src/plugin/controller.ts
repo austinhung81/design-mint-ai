@@ -149,6 +149,12 @@ figma.ui.onmessage = async msg => {
 				figma.viewport.scrollAndZoomIntoView([node])
 				figma.currentPage.selection = [node]
 			}
+		} else if (msg.type === 'insert-frame') {
+			const frameDetail = msg.frame
+			console.log('Inserting frame:', frameDetail)
+			if (frameDetail) {
+				figma.currentPage.appendChild(frameDetail.node)
+			}
 		}
 	} catch (error) {
 		console.error('Error processing message:', msg, error)
