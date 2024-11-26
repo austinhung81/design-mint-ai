@@ -114,6 +114,7 @@ async function findFrames(keywords: string[], colors: string[]) {
 				name: frame.name,
 				node: frame,
 				preview: previewUrl,
+				nodeId: nodeId,
 			}
 		})
 	)
@@ -150,10 +151,14 @@ figma.ui.onmessage = async msg => {
 				figma.currentPage.selection = [node]
 			}
 		} else if (msg.type === 'insert-frame') {
-			const frameDetail = msg.frame
-			console.log('Inserting frame:', frameDetail)
-			if (frameDetail) {
-				figma.currentPage.appendChild(frameDetail.node)
+			const node = (await figma.getNodeByIdAsync(msg.nodeId)) as SceneNode
+
+			if (node) {
+				// Duplicate the node to append a copy, as nodes cannot exist in two places at once.
+				const clone = node.clone() // Cloning the node
+				figma.currentPage.appendChild(clone)
+			} else {
+				console.error('Node not found or cannot be inserted')
 			}
 		}
 	} catch (error) {

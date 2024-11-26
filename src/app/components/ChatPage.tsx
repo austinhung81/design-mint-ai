@@ -14,6 +14,7 @@ import ConversationService, { Conversation } from '../service/ConversationServic
 import { FileDataRef } from '../models/FileData'
 import { Loader } from '../../../components/ui/loader'
 import addIcon from '../assets/add.svg'
+import exportIcon from '../assets/export_notes.svg'
 import { predefinedMessages } from '../service/PredefinedMessages'
 import { getFrames } from '../../../lib/utils'
 
@@ -24,6 +25,7 @@ type Frame = {
 		id: string
 	}
 	preview: string
+	nodeId: string
 }
 
 export interface User {
@@ -257,15 +259,12 @@ const ChatPage = ({
 					.map((frame, index) => {
 						return `${index + 1}. ${frame.name}, ${frame.url}\n<img src="${
 							frame.preview
-						}" style="width:100px;" /> <div onclick="insertFrame(${index})">Insert Frame</div>`
+						}" style="width:100px; margin-top: 8px" /> <div style="display: flex; margin-top: 12px; margin-bottom: 24px;"><img src="${exportIcon}" style="padding-right: 8px;" width={16} height={16} /><div style="color: hsl(var(--mint400)); cursor: pointer;" data-type="insert-frame" data-node-id="${
+							frame.nodeId
+						}">Insert</div></div>`
 					})
 					.join('\n')
 
-				// Function to handle frame insertion
-				function insertFrame(frame) {
-					console.log('Inserting frame:', frame)
-					parent.postMessage({ pluginMessage: { type: 'insert-frame', frame: frame } }, '*')
-				}
 				setMessages(prevMessages => {
 					let isNew: boolean = false
 					try {

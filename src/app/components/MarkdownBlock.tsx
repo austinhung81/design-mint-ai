@@ -19,21 +19,30 @@ const MarkdownBlock: React.FC<ChatBlockProps> = ({ markdown, loading }) => {
 	useEffect(() => {
 		const container = containerRef.current
 		if (container) {
-			const handleLinkClick = (event: MouseEvent) => {
-				const target = event.target as HTMLAnchorElement
+			// Handle clicks in the container
+			const handleContainerClick = (event: MouseEvent) => {
+				const target = event.target as HTMLElement
+				// Check for anchor (<a>) clicks
 				if (target.tagName === 'A') {
 					event.preventDefault()
-					const url = new URL(target.href)
+					const url = new URL((target as HTMLAnchorElement).href)
 					const nodeId = url.searchParams.get('node-id')?.replace(/-/g, ':')
 					if (nodeId) {
 						parent.postMessage({ pluginMessage: { type: 'navigate-to-node', nodeId } }, '*')
 					}
 				}
+
+				if (target.dataset.type === 'insert-frame') {
+					const nodeId = target.dataset.nodeId?.replace(/-/g, ':')
+					if (nodeId) {
+						parent.postMessage({ pluginMessage: { type: 'insert-frame', nodeId: nodeId } }, '*')
+					}
+				}
 			}
 
-			container.addEventListener('click', handleLinkClick)
+			container.addEventListener('click', handleContainerClick)
 			return () => {
-				container.removeEventListener('click', handleLinkClick)
+				container.removeEventListener('click', handleContainerClick)
 			}
 		}
 	}, [])
